@@ -7,38 +7,33 @@
 <style>
 /* ============================================================
    THEME TOKENS — WCAG 2.1 AA verified
-   ------------------------------------------------------------
-   Dark:  text/bg ≈ 15.8:1 · muted/bg ≈ 8.9:1 · muted-2/bg ≈ 5.9:1
-          accent/bg ≈ 8.4:1 · ok/bg ≈ 11.7:1 · warn/bg ≈ 12.9:1
-          danger/bg ≈ 8.6:1
-   Light: text/bg ≈ 15.1:1 · muted/bg ≈ 8.4:1 · muted-2/bg ≈ 5.8:1
-          accent/bg ≈ 7.6:1 · ok/bg ≈ 5.7:1 · warn/bg ≈ 5.4:1
-          danger/bg ≈ 6.9:1
    ============================================================ */
 :root{
+  color-scheme: dark;   /* makes native <select>, scrollbar etc. use dark OS UI */
   --bg:#0a0f1e;
   --glow1: rgba(123,168,255,.20);
   --glow2: rgba(154,123,255,.16);
   --panel: rgba(255,255,255,.06);
   --panel-2: rgba(255,255,255,.04);
   --solid:#111a30;
-  --solid-2:#16203a;
+  --solid-2:#1a2540;
   --border: rgba(255,255,255,.20);
   --border-2: rgba(255,255,255,.12);
-  --text:#eaf1ff;         /* 15.8:1 on bg */
-  --muted:#b3c0dd;        /* 8.9:1 on bg */
-  --muted-2:#8fa0c4;      /* 5.9:1 on bg — minimum AA for small text */
-  --accent:#7ba8ff;       /* 8.4:1 on bg */
+  --text:#eaf1ff;
+  --muted:#b3c0dd;
+  --muted-2:#8fa0c4;
+  --accent:#7ba8ff;
   --accent-ink:#04102b;
   --accent-2:#9a7bff;
-  --ok:#4fe0a8;           /* 11.7:1 on bg */
-  --warn:#ffc861;         /* 12.9:1 on bg */
-  --danger:#ff8293;       /* 8.6:1 on bg */
-  --focus:#9dc2ff;        /* dedicated focus ring, 10:1 on bg */
+  --ok:#4fe0a8;
+  --warn:#ffc861;
+  --danger:#ff8293;
+  --focus:#9dc2ff;
   --shadow: 0 10px 30px rgba(0,0,0,.4);
   --radius:12px;
 }
 html[data-theme="light"]{
+  color-scheme: light;
   --bg:#eef2fa;
   --glow1: rgba(30,79,199,.14);
   --glow2: rgba(91,52,217,.12);
@@ -48,22 +43,19 @@ html[data-theme="light"]{
   --solid-2:#f5f7fd;
   --border: rgba(16,28,60,.22);
   --border-2: rgba(16,28,60,.14);
-  --text:#0a1226;         /* 15.1:1 on bg */
-  --muted:#3d4d6b;        /* 8.4:1 on bg */
-  --muted-2:#54628a;      /* 5.8:1 on bg */
-  --accent:#1e4fc7;       /* 7.6:1 on bg */
+  --text:#0a1226;
+  --muted:#3d4d6b;
+  --muted-2:#54628a;
+  --accent:#1e4fc7;
   --accent-ink:#ffffff;
   --accent-2:#5b34d9;
-  --ok:#0a7a52;           /* 5.7:1 on bg */
-  --warn:#96560a;         /* 5.4:1 on bg */
-  --danger:#b81e34;       /* 6.9:1 on bg */
-  --focus:#0f3ea8;        /* 8.4:1 on bg */
+  --ok:#0a7a52;
+  --warn:#96560a;
+  --danger:#b81e34;
+  --focus:#0f3ea8;
   --shadow: 0 10px 26px rgba(20,35,80,.16);
 }
 
-/* ============================================================
-   BASE
-   ============================================================ */
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
@@ -86,8 +78,7 @@ button, input, select, textarea{font:inherit;color:inherit}
 *::-webkit-scrollbar-thumb:hover{background:var(--muted-2);background-clip:content-box}
 
 /* ============================================================
-   FOCUS — WCAG 2.4.11 / 2.4.13
-   3 px ring + 2 px offset, high-contrast token, visible on every surface
+   FOCUS
    ============================================================ */
 :focus{outline:none}
 :focus-visible{
@@ -119,7 +110,7 @@ textarea:focus-visible{
 .skip-link:focus{left:8px;outline:3px solid var(--focus);outline-offset:2px}
 
 /* ============================================================
-   REDUCED MOTION — WCAG 2.3.3
+   REDUCED MOTION
    ============================================================ */
 @media (prefers-reduced-motion: reduce){
   *, *::before, *::after{
@@ -135,7 +126,6 @@ textarea:focus-visible{
    ============================================================ */
 .app{display:grid;grid-template-rows:auto auto 1fr;height:100vh;height:100dvh;overflow:hidden}
 
-/* ---------- Top bar ---------- */
 .topbar{
   display:flex;align-items:center;gap:14px;flex-wrap:wrap;
   padding:10px 16px;border-bottom:1px solid var(--border);
@@ -177,7 +167,7 @@ textarea:focus-visible{
 .net.offline .dot{background:var(--danger);box-shadow:0 0 8px var(--danger)}
 
 /* ============================================================
-   BUTTONS — WCAG 2.5.8 target size ≥ 24 × 24, 2.4.7 visible focus
+   BUTTONS
    ============================================================ */
 button{
   cursor:pointer;border-radius:9px;border:1px solid var(--border);
@@ -242,10 +232,52 @@ html[data-theme="light"] button.danger:hover{background:rgba(184,30,52,.10)}
   position:absolute;left:12px;top:50%;transform:translateY(-50%);
   color:var(--muted-2);font-size:14px;pointer-events:none;
 }
+
+/* ============================================================
+   SELECT — WCAG-fixed for native dropdown popups
+   color-scheme on root controls the OS popup colors;
+   select option {} gives us explicit control where supported.
+   ============================================================ */
 select{
-  padding:9px 11px;border-radius:9px;border:1px solid var(--border);
-  background:var(--solid);color:var(--text);cursor:pointer;
+  padding:9px 34px 9px 12px;
+  border-radius:9px;
+  border:1px solid var(--border);
+  background-color: var(--solid-2);       /* opaque — not translucent */
+  color: var(--text);
+  cursor:pointer;
   min-height:36px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8' fill='none' stroke='%238fa0c4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 11px 8px;
+}
+html[data-theme="light"] select{
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8' fill='none' stroke='%2354628a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5'/%3E%3C/svg%3E");
+}
+select:hover{border-color:var(--muted-2);background-color:var(--solid)}
+select:focus-visible{
+  outline:3px solid var(--focus);
+  outline-offset:2px;
+  border-color:var(--accent);
+}
+/* Force native popup list colors — high contrast in both themes */
+select option,
+select optgroup{
+  background-color: var(--solid);
+  color: var(--text);
+  font-size:13.5px;
+  padding:6px 8px;
+}
+select option:checked{
+  background-color: var(--accent);
+  color: var(--accent-ink);
+}
+select option:disabled{
+  color: var(--muted-2);
+  font-style: italic;
 }
 
 /* ---------- Main ---------- */
@@ -396,7 +428,6 @@ html[data-theme="light"] .item .acts button.danger:hover{
   border-color:rgba(184,30,52,.40);background:rgba(184,30,52,.10);
 }
 
-/* ---------- Empty states ---------- */
 .empty{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:12px;text-align:center;padding:56px 20px;color:var(--muted);
@@ -405,7 +436,6 @@ html[data-theme="light"] .item .acts button.danger:hover{
 .empty h3{margin:0;font-size:16px;color:var(--text);font-weight:700}
 .empty p{margin:0;font-size:13px;max-width:440px;color:var(--muted);line-height:1.55}
 
-/* ---------- Toasts ---------- */
 #toasts{
   position:fixed;right:16px;bottom:16px;z-index:200;
   display:flex;flex-direction:column;gap:8px;align-items:flex-end;
@@ -427,7 +457,6 @@ html[data-theme="light"] .item .acts button.danger:hover{
 @keyframes toastIn{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
 @keyframes toastOut{to{opacity:0;transform:translateY(6px) scale(.98)}}
 
-/* ---------- Modals ---------- */
 .modal{
   position:fixed;inset:0;z-index:150;display:none;
   align-items:center;justify-content:center;padding:18px;
@@ -451,13 +480,19 @@ html[data-theme="light"] .modal{background:rgba(20,30,60,.42)}
   display:block;font-size:12px;font-weight:650;color:var(--muted);
   margin-bottom:6px;letter-spacing:.3px;
 }
+/* Form fields — opaque backgrounds so text renders crisply in both themes */
 .field input[type=text],
 .field textarea,
 .field select{
   width:100%;padding:10px 12px;border-radius:9px;
-  border:1px solid var(--border);background:var(--panel-2);color:var(--text);
+  border:1px solid var(--border);
+  background-color: var(--solid-2);       /* opaque */
+  color: var(--text);
 }
+.field select{padding-right:34px}
 .field textarea{resize:vertical;min-height:70px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px}
+.field input[type=text]::placeholder,
+.field textarea::placeholder{color:var(--muted-2)}
 .meta-grid{
   display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:9px;
   padding:11px;border-radius:10px;background:var(--panel-2);
@@ -479,7 +514,6 @@ html[data-theme="light"] .modal{background:rgba(20,30,60,.42)}
 .radio-list label:hover{background:var(--panel-2);border-color:var(--border)}
 .radio-list input{accent-color:var(--accent);width:16px;height:16px}
 
-/* ---------- Export tabs ---------- */
 .tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
 .tabs button{border-radius:999px;padding:8px 16px;font-size:13px}
 .tabs button.active{
@@ -492,11 +526,12 @@ html[data-theme="light"] .modal{background:rgba(20,30,60,.42)}
   font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   font-size:12.5px;line-height:1.6;
   padding:13px;border-radius:10px;
-  border:1px solid var(--border);background:var(--panel-2);color:var(--text);
+  border:1px solid var(--border);
+  background-color: var(--solid-2);
+  color:var(--text);
   white-space:pre;overflow:auto;
 }
 
-/* ---------- Normalize options ---------- */
 .norm-opt{
   display:flex;gap:11px;padding:11px 12px;border-radius:10px;
   border:1px solid var(--border-2);margin-bottom:8px;cursor:pointer;
@@ -520,9 +555,10 @@ html[data-theme="light"] .norm-opt.checked{background:rgba(30,79,199,.08)}
 .norm-preview{
   font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;
   padding:10px 12px;border-radius:9px;
-  background:var(--panel-2);border:1px solid var(--border-2);
+  background-color: var(--solid-2);
+  border:1px solid var(--border-2);
   margin-top:12px;word-break:break-all;max-height:130px;overflow:auto;
-  line-height:1.55;
+  line-height:1.55;color:var(--text);
 }
 .norm-preview .k{color:var(--muted)}
 .norm-preview .old{color:var(--danger);text-decoration:line-through;opacity:.9}
@@ -552,7 +588,7 @@ html[data-theme="light"] .norm-opt.checked{background:rgba(30,79,199,.08)}
 .smart-list{
   max-height:48vh;overflow:auto;
   border:1px solid var(--border-2);border-radius:10px;
-  background:var(--panel-2);
+  background-color: var(--solid-2);
 }
 .smart-group{border-bottom:1px solid var(--border-2)}
 .smart-group:last-child{border-bottom:none}
@@ -603,10 +639,11 @@ html[data-theme="light"] .smart-details{background:rgba(16,28,60,.05)}
 @keyframes sdIn{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
 .sd-link{
   padding:9px 11px;margin:6px 0;border-radius:8px;
-  background:var(--panel-2);border:1px solid var(--border-2);
-  font-size:12px;transition:border-color .15s,background .15s;
+  background-color: var(--solid-2);
+  border:1px solid var(--border-2);
+  font-size:12px;transition:border-color .15s;
 }
-.sd-link:hover{border-color:var(--border);background:var(--panel)}
+.sd-link:hover{border-color:var(--border)}
 .sd-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .sd-label{font-weight:600;overflow-wrap:anywhere;color:var(--text)}
 .sd-label.muted{color:var(--muted);font-weight:400;font-style:italic}
@@ -643,13 +680,14 @@ html[data-theme="light"] .sd-tag.cat{color:var(--ok);border-color:rgba(10,122,82
 .cat-export-list{max-height:54vh;overflow:auto;padding-right:4px}
 .ce-row{
   border:1px solid var(--border-2);border-radius:10px;margin-bottom:9px;
-  background:var(--panel-2);overflow:hidden;
+  background-color: var(--solid-2);overflow:hidden;
   transition:border-color .15s;
 }
 .ce-row:hover{border-color:var(--border)}
 .ce-head{
   display:flex;align-items:center;gap:9px;padding:10px 13px;
-  background:var(--panel-2);border-bottom:1px solid var(--border-2);
+  background-color: var(--solid-2);
+  border-bottom:1px solid var(--border-2);
   flex-wrap:wrap;
 }
 .ce-name{
@@ -676,7 +714,6 @@ html[data-theme="light"] .ce-preview{background:rgba(16,28,60,.055);color:var(--
 .ce-preview .empty-note{color:var(--muted);font-style:italic}
 .ce-empty{padding:28px;text-align:center;color:var(--muted);font-size:13px}
 
-/* ---------- Drop overlay ---------- */
 #dropOverlay{
   position:fixed;inset:0;z-index:300;display:none;
   align-items:center;justify-content:center;
@@ -695,9 +732,6 @@ html[data-theme="light"] .ce-preview{background:rgba(16,28,60,.055);color:var(--
 
 #mobileCats{display:none}
 
-/* ============================================================
-   RESPONSIVE
-   ============================================================ */
 @media (max-width: 900px){
   body{overflow:auto}
   .app{height:auto;min-height:100dvh;overflow:visible}
@@ -723,9 +757,6 @@ html[data-theme="light"] .ce-preview{background:rgba(16,28,60,.055);color:var(--
   .modal-box{padding:16px 14px}
 }
 
-/* ============================================================
-   PRINT FALLBACK
-   ============================================================ */
 @media print{
   body{background:#fff;color:#000;overflow:visible}
   .topbar,.toolbar,.sidebar,.ws-head,#toasts,.modal,.item .acts,.item .chk,.item .grip,.skip-link{display:none!important}
@@ -740,7 +771,6 @@ html[data-theme="light"] .ce-preview{background:rgba(16,28,60,.055);color:var(--
 
 <div class="app">
 
-  <!-- ============ TOP BAR ============ -->
   <header class="topbar" role="banner">
     <div class="brand">
       <div class="logo" aria-hidden="true">🔗</div>
@@ -764,7 +794,6 @@ html[data-theme="light"] .ce-preview{background:rgba(16,28,60,.055);color:var(--
     </div>
   </header>
 
-  <!-- ============ TOOLBAR ============ -->
   <div class="toolbar" role="toolbar" aria-label="Import, search and export tools">
     <button id="importFilesBtn" class="primary" type="button">📄 Import HTML</button>
     <button id="importFolderBtn" type="button">📁 Import Folder</button>
@@ -773,7 +802,7 @@ html[data-theme="light"] .ce-preview{background:rgba(16,28,60,.055);color:var(--
 
     <div class="search">
       <span class="ico" aria-hidden="true">🔍</span>
-      <label for="searchInput" class="visually-hidden" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;">Search links</label>
+      <label for="searchInput" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;">Search links</label>
       <input id="searchInput" type="search" placeholder="Search label, URL, source file, element, attribute…" autocomplete="off">
     </div>
 
@@ -795,7 +824,6 @@ html[data-theme="light"] .ce-preview{background:rgba(16,28,60,.055);color:var(--
     <button id="exportBtn" type="button">📤 Export</button>
   </div>
 
-  <!-- ============ MAIN ============ -->
   <div class="main">
 
     <aside class="sidebar" id="sidebar" aria-label="Categories">
@@ -824,7 +852,6 @@ html[data-theme="light"] .ce-preview{background:rgba(16,28,60,.055);color:var(--
   </div>
 </div>
 
-<!-- ============ DROP OVERLAY ============ -->
 <div id="dropOverlay" role="presentation" aria-hidden="true">
   <div class="box">
     <span class="big" aria-hidden="true">📥</span>
@@ -833,53 +860,45 @@ html[data-theme="light"] .ce-preview{background:rgba(16,28,60,.055);color:var(--
   </div>
 </div>
 
-<!-- ============ TOASTS ============ -->
 <div id="toasts" role="status" aria-live="polite" aria-atomic="false"></div>
 
-<!-- ============ MODAL: CATEGORY EXPORT ============ -->
+<!-- MODAL: CATEGORY EXPORT -->
 <div class="modal" id="catExportModal" role="dialog" aria-modal="true" aria-labelledby="catExportTitle">
   <div class="modal-box wide">
     <h3 id="catExportTitle">📥 Export per Category (.txt)</h3>
-    <p class="hint">Each category exports as a single-line plain text file with links joined by <code>; </code> (semicolon + 1 space). No wrap, no metadata — ready for tools that accept raw link lists. Filename matches the category name.</p>
-
+    <p class="hint">Each category exports as a single-line plain text file with links joined by <code>; </code> (semicolon + 1 space). No wrap, no metadata. Filename matches the category name.</p>
     <div class="ce-topbar">
       <span class="mini" id="ceSummary"></span>
       <span class="spacer"></span>
-      <button id="ceCopyAll" class="ghost" type="button" title="Copy all categories to clipboard (concatenated)">⧉ Copy all</button>
-      <button id="ceSaveAll" class="primary" type="button" title="Download each category as its own .txt">💾 Save all as .txt</button>
+      <button id="ceCopyAll" class="ghost" type="button">⧉ Copy all</button>
+      <button id="ceSaveAll" class="primary" type="button">💾 Save all as .txt</button>
     </div>
-
     <div class="cat-export-list" id="catExportList"></div>
-
     <div class="modal-actions">
       <button id="ceClose" type="button">Close</button>
     </div>
   </div>
 </div>
 
-<!-- ============ MODAL: SMART GROUP ============ -->
+<!-- MODAL: SMART GROUP -->
 <div class="modal" id="smartModal" role="dialog" aria-modal="true" aria-labelledby="smartTitle">
   <div class="modal-box wide">
     <h3 id="smartTitle">🧠 Smart Auto-Categorize</h3>
     <p class="hint">Detected groups from <b>heading sections</b>, HTML classes, <code>data-*</code> attributes, parent elements, and domains. <b>Click a row to expand and inspect the links inside.</b> Check the ones you want to turn into categories.</p>
-
     <div class="smart-toolbar" role="group" aria-label="Group filters">
-      <span class="pill on" data-filter="all" role="button" tabindex="0">All</span>
-      <span class="pill" data-filter="section" role="button" tabindex="0">📑 Sections</span>
-      <span class="pill" data-filter="class" role="button" tabindex="0">🏷️ Classes</span>
-      <span class="pill" data-filter="parent" role="button" tabindex="0">📁 Parents</span>
-      <span class="pill" data-filter="attr" role="button" tabindex="0">⚙️ Data attrs</span>
-      <span class="pill" data-filter="domain" role="button" tabindex="0">🌐 Domains</span>
+      <span class="pill on" data-filter="all" role="button" tabindex="0" aria-pressed="true">All</span>
+      <span class="pill" data-filter="section" role="button" tabindex="0" aria-pressed="false">📑 Sections</span>
+      <span class="pill" data-filter="class" role="button" tabindex="0" aria-pressed="false">🏷️ Classes</span>
+      <span class="pill" data-filter="parent" role="button" tabindex="0" aria-pressed="false">📁 Parents</span>
+      <span class="pill" data-filter="attr" role="button" tabindex="0" aria-pressed="false">⚙️ Data attrs</span>
+      <span class="pill" data-filter="domain" role="button" tabindex="0" aria-pressed="false">🌐 Domains</span>
       <span class="spacer"></span>
-      <button class="exp-btn" id="smartExpandAll" type="button" title="Expand all shown groups">▾ Expand all</button>
-      <button class="exp-btn" id="smartCollapseAll" type="button" title="Collapse all groups">▸ Collapse all</button>
+      <button class="exp-btn" id="smartExpandAll" type="button">▾ Expand all</button>
+      <button class="exp-btn" id="smartCollapseAll" type="button">▸ Collapse all</button>
       <label class="smart-checkall"><input type="checkbox" id="smartOnlyUnassigned" checked> Only Unassigned</label>
     </div>
-
     <div class="smart-list" id="smartList"></div>
-
     <div class="smart-summary" id="smartSummary" role="status" aria-live="polite"></div>
-
     <div class="modal-actions">
       <label class="smart-checkall left"><input type="checkbox" id="smartCheckAll"> Select all shown</label>
       <button id="smartCancel" type="button">Cancel</button>
@@ -888,28 +907,25 @@ html[data-theme="light"] .ce-preview{background:rgba(16,28,60,.055);color:var(--
   </div>
 </div>
 
-<!-- ============ MODAL: NORMALIZE ============ -->
+<!-- MODAL: NORMALIZE -->
 <div class="modal" id="normModal" role="dialog" aria-modal="true" aria-labelledby="normTitle">
   <div class="modal-box">
     <h3 id="normTitle">🔧 URL Normalization</h3>
     <p class="hint">Clean up extracted links. Original URLs are always preserved so you can revert anytime.</p>
-
     <label class="norm-opt" id="optWww">
       <input type="checkbox" id="normWww">
       <div class="n-body">
         <b>Prefix bare <code>www.</code> URLs with <code>https://</code></b>
-        <div class="sub"><code>www.example.com</code> → <code>https://www.example.com</code> &nbsp;·&nbsp; URLs already having a scheme or starting with <code>//</code> are left unchanged.</div>
+        <div class="sub"><code>www.example.com</code> → <code>https://www.example.com</code> · URLs already having a scheme or starting with <code>//</code> are left unchanged.</div>
       </div>
     </label>
-
     <label class="norm-opt" id="optDecode">
       <input type="checkbox" id="normDecode">
       <div class="n-body">
         <b>Decode percent-encoding</b>
-        <div class="sub"><code>%3A</code> → <code>:</code> &nbsp; <code>%2F</code> → <code>/</code> &nbsp; <code>%20</code> → <i>space</i></div>
+        <div class="sub"><code>%3A</code> → <code>:</code> · <code>%2F</code> → <code>/</code> · <code>%20</code> → <i>space</i></div>
       </div>
     </label>
-
     <label class="norm-opt" id="optTracking">
       <input type="checkbox" id="normTracking">
       <div class="n-body">
@@ -917,7 +933,6 @@ html[data-theme="light"] .ce-preview{background:rgba(16,28,60,.055);color:var(--
         <div class="sub"><code>utm_*</code> <code>fbclid</code> <code>gclid</code> <code>usg</code> <code>sa</code> <code>sntz</code> <code>_ga</code> …</div>
       </div>
     </label>
-
     <label class="norm-opt" id="optRedirect">
       <input type="checkbox" id="normRedirect">
       <div class="n-body">
@@ -925,9 +940,7 @@ html[data-theme="light"] .ce-preview{background:rgba(16,28,60,.055);color:var(--
         <div class="sub"><code>google.com/url?q=…</code> · <code>facebook.com/l.php?u=…</code> · <code>youtube.com/redirect?q=…</code></div>
       </div>
     </label>
-
     <div class="norm-preview" id="normPreview" role="status" aria-live="polite"><span class="k">Preview (first matching link):</span><br><span class="k">—</span></div>
-
     <div class="modal-actions">
       <button class="ghost left" id="normCancel" type="button">Cancel</button>
       <button id="normSaveOnly" type="button">Save for imports</button>
@@ -936,7 +949,7 @@ html[data-theme="light"] .ce-preview{background:rgba(16,28,60,.055);color:var(--
   </div>
 </div>
 
-<!-- ============ MODAL: EDIT LINK ============ -->
+<!-- MODAL: EDIT LINK -->
 <div class="modal" id="editModal" role="dialog" aria-modal="true" aria-labelledby="editTitle">
   <div class="modal-box">
     <h3 id="editTitle">Edit Link</h3>
@@ -946,7 +959,7 @@ html[data-theme="light"] .ce-preview{background:rgba(16,28,60,.055);color:var(--
     <div class="field"><label for="editUrl">URL / Link</label><textarea id="editUrl" spellcheck="false"></textarea></div>
     <div class="field" id="editOrigField" style="display:none">
       <label>Original URL (from HTML)</label>
-      <input type="text" id="editOrigUrl" readonly style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;background:var(--panel)">
+      <input type="text" id="editOrigUrl" readonly style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px">
       <div style="display:flex;gap:6px;margin-top:7px">
         <button type="button" class="ghost" id="editRevert" style="font-size:12px;padding:5px 10px;min-height:28px">↺ Revert to original</button>
       </div>
@@ -960,7 +973,7 @@ html[data-theme="light"] .ce-preview{background:rgba(16,28,60,.055);color:var(--
   </div>
 </div>
 
-<!-- ============ MODAL: MOVE ============ -->
+<!-- MODAL: MOVE -->
 <div class="modal" id="moveModal" role="dialog" aria-modal="true" aria-labelledby="moveTitle">
   <div class="modal-box small">
     <h3 id="moveTitle">Move to category</h3>
@@ -973,7 +986,7 @@ html[data-theme="light"] .ce-preview{background:rgba(16,28,60,.055);color:var(--
   </div>
 </div>
 
-<!-- ============ MODAL: CATEGORY ============ -->
+<!-- MODAL: CATEGORY -->
 <div class="modal" id="catModal" role="dialog" aria-modal="true" aria-labelledby="catTitle">
   <div class="modal-box small">
     <h3 id="catTitle">New category</h3>
@@ -987,7 +1000,7 @@ html[data-theme="light"] .ce-preview{background:rgba(16,28,60,.055);color:var(--
   </div>
 </div>
 
-<!-- ============ MODAL: CONFIRM ============ -->
+<!-- MODAL: CONFIRM -->
 <div class="modal" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="cfTitle">
   <div class="modal-box small">
     <h3 id="cfTitle">Confirm</h3>
@@ -999,7 +1012,7 @@ html[data-theme="light"] .ce-preview{background:rgba(16,28,60,.055);color:var(--
   </div>
 </div>
 
-<!-- ============ MODAL: EXPORT ============ -->
+<!-- MODAL: EXPORT -->
 <div class="modal" id="exportModal" role="dialog" aria-modal="true" aria-labelledby="exportTitle">
   <div class="modal-box wide">
     <h3 id="exportTitle">Export &amp; Report</h3>
@@ -1032,7 +1045,7 @@ html[data-theme="light"] .ce-preview{background:rgba(16,28,60,.055);color:var(--
 <script>
 "use strict";
 /* ==================================================================
-   LINK SCRAPER & ORGANIZER — WCAG AA audited build
+   LINK SCRAPER & ORGANIZER
    ================================================================== */
 const $  = (s, r) => (r || document).querySelector(s);
 const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
@@ -1072,7 +1085,7 @@ let smartChecked = new Set();
 let smartExpanded = new Set();
 const SMART_DETAIL_MAX = 200;
 
-let lastFocusedEl = null;   // for modal focus return
+let lastFocusedEl = null;
 
 /* ==================================================================
    URL NORMALIZATION
@@ -1250,7 +1263,6 @@ function openModal(id){
   lastFocusedEl = document.activeElement;
   const m = $("#" + id);
   m.classList.add("open");
-  // Focus first focusable element inside modal for keyboard users
   setTimeout(() => {
     const first = m.querySelector('input:not([type="hidden"]), textarea, select, button.primary, button');
     if(first && typeof first.focus === "function") first.focus();
@@ -2517,7 +2529,6 @@ $("#smartModal").addEventListener("click", e => {
   }
 });
 
-// Keyboard support for filter pills
 $("#smartModal").addEventListener("keydown", e => {
   if((e.key === "Enter" || e.key === " ") && e.target.classList.contains("pill")){
     e.preventDefault();
