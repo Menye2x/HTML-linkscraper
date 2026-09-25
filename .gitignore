@@ -1,0 +1,35 @@
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor directories and files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Test data or dummy files (Mencegah file HTML yang sedang Anda uji coba ikut ter-commit)
+/test-data/
+/samples/
+/dump/
+*.temp.html
+*.tmp
+
+# Exported files from the app (Menghindari hasil ekspor teks ter-commit)
+*.txt
+*.pdf
+link-report-detailed.txt
+link-only.txt
+
+# Node modules (Hanya jika di masa depan Anda mengubahnya menggunakan NPM/Bundler)
+node_modules/
+npm-debug.log
+yarn-error.log

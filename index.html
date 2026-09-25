@@ -1,0 +1,2540 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Link Scraper &amp; Organizer</title>
+<style>
+:root{
+  --bg:#0a0f1e;
+  --glow1: rgba(91,140,255,.18);
+  --glow2: rgba(124,92,255,.16);
+  --panel: rgba(255,255,255,.055);
+  --panel-2: rgba(255,255,255,.03);
+  --solid:#111a30;
+  --border: rgba(255,255,255,.14);
+  --border-2: rgba(255,255,255,.08);
+  --text:#e9efff;
+  --muted:#a3b2d4;
+  --muted-2:#7d8db0;
+  --accent:#6b9bff;
+  --accent-ink:#04102b;
+  --accent-2:#8a6bff;
+  --ok:#3ad39a;
+  --warn:#ffbd45;
+  --danger:#ff6b81;
+  --shadow: 0 10px 30px rgba(0,0,0,.35);
+  --radius:12px;
+}
+html[data-theme="light"]{
+  --bg:#eef2fa;--glow1: rgba(91,140,255,.22);--glow2: rgba(124,92,255,.16);
+  --panel: rgba(255,255,255,.72);--panel-2: rgba(255,255,255,.55);
+  --solid:#ffffff;--border: rgba(16,28,60,.16);--border-2: rgba(16,28,60,.09);
+  --text:#0d1730;--muted:#4a5a7c;--muted-2:#61708f;
+  --accent:#2b5fd9;--accent-ink:#ffffff;--accent-2:#6b46e0;
+  --ok:#0f9d6b;--warn:#b76b00;--danger:#c8283f;
+  --shadow: 0 10px 26px rgba(20,35,80,.14);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size:14px;line-height:1.45;color:var(--text);
+  background:
+    radial-gradient(1100px 520px at 8% -12%, var(--glow1), transparent 62%),
+    radial-gradient(900px 480px at 102% -4%, var(--glow2), transparent 58%),
+    var(--bg);
+  background-attachment: fixed;-webkit-font-smoothing:antialiased;overflow:hidden;
+}
+button, input, select, textarea{font:inherit;color:inherit}
+::selection{background:var(--accent);color:var(--accent-ink)}
+*::-webkit-scrollbar{width:10px;height:10px}
+*::-webkit-scrollbar-track{background:transparent}
+*::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px;border:2px solid transparent;background-clip:content-box}
+*::-webkit-scrollbar-thumb:hover{background:var(--muted-2);background-clip:content-box}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+
+.app{display:grid;grid-template-rows:auto auto 1fr;height:100vh;height:100dvh;overflow:hidden}
+
+.topbar{
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:10px 16px;border-bottom:1px solid var(--border);
+  background:var(--panel);backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);z-index:20;
+}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.logo{
+  width:36px;height:36px;flex:0 0 36px;border-radius:10px;display:grid;place-items:center;font-size:18px;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;box-shadow:0 4px 14px rgba(91,140,255,.35);
+}
+.brand h1{font-size:15px;margin:0;font-weight:700;letter-spacing:.2px;white-space:nowrap}
+.brand h1 span{color:var(--muted);font-weight:500}
+.brand .sub{font-size:11px;color:var(--muted-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;
+  background:var(--panel-2);border:1px solid var(--border-2);font-size:11.5px;color:var(--muted);white-space:nowrap;}
+.chip b{color:var(--text);font-weight:650}
+.top-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.net{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;padding:4px 10px;border-radius:999px;
+  border:1px solid var(--border-2);background:var(--panel-2);color:var(--muted);}
+.net .dot{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok)}
+.net.offline .dot{background:var(--danger);box-shadow:0 0 8px var(--danger)}
+
+button{cursor:pointer;border-radius:9px;border:1px solid var(--border);background:var(--panel-2);color:var(--text);
+  padding:7px 12px;font-size:12.5px;font-weight:560;
+  transition: background .15s, border-color .15s, transform .06s, color .15s, opacity .15s;white-space:nowrap;}
+button:hover{background:var(--panel);border-color:var(--muted-2)}
+button:active{transform:translateY(1px)}
+button:disabled{opacity:.42;cursor:not-allowed;transform:none}
+button.primary{background:linear-gradient(135deg,var(--accent),var(--accent-2));border-color:transparent;color:#fff;
+  box-shadow:0 4px 14px rgba(91,140,255,.28);}
+button.primary:hover{filter:brightness(1.08);border-color:transparent}
+button.danger{color:var(--danger);border-color:rgba(255,107,129,.35)}
+button.danger:hover{background:rgba(255,107,129,.14);border-color:var(--danger)}
+button.ghost{background:transparent;border-color:transparent;color:var(--muted)}
+button.ghost:hover{background:var(--panel-2);color:var(--text);border-color:var(--border-2)}
+button.icon{padding:6px 9px;font-size:13px;line-height:1}
+button.warnBtn{color:var(--warn);border-color:rgba(255,189,69,.35)}
+button.warnBtn:hover{background:rgba(255,189,69,.12);border-color:var(--warn)}
+button.smartBtn{color:var(--accent-2);border-color:rgba(138,107,255,.35)}
+button.smartBtn:hover{background:rgba(138,107,255,.12);border-color:var(--accent-2)}
+button.exportBtn{color:var(--ok);border-color:rgba(58,211,154,.35)}
+button.exportBtn:hover{background:rgba(58,211,154,.12);border-color:var(--ok)}
+
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:9px 16px;
+  border-bottom:1px solid var(--border);background:var(--panel-2);backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);z-index:15;}
+.search{position:relative;flex:1 1 200px;min-width:160px}
+.search input{width:100%;padding:8px 12px 8px 32px;border-radius:9px;border:1px solid var(--border);
+  background:var(--solid);color:var(--text);}
+.search input::placeholder{color:var(--muted-2)}
+.search .ico{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted-2);font-size:13px;pointer-events:none}
+select{padding:8px 10px;border-radius:9px;border:1px solid var(--border);background:var(--solid);color:var(--text);cursor:pointer}
+
+.main{display:grid;grid-template-columns: 262px 1fr;min-height:0;overflow:hidden}
+
+.sidebar{border-right:1px solid var(--border);background:var(--panel);
+  backdrop-filter: blur(14px) saturate(140%);-webkit-backdrop-filter: blur(14px) saturate(140%);
+  display:flex;flex-direction:column;min-height:0;}
+.side-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 14px 8px;
+  font-size:11px;letter-spacing:.9px;text-transform:uppercase;color:var(--muted-2);font-weight:700;}
+.cat-list{overflow:auto;padding:0 8px 10px;flex:1;min-height:0}
+.cat{display:flex;align-items:center;gap:8px;padding:8px 10px;margin-bottom:4px;border-radius:9px;
+  border:1px solid transparent;cursor:pointer;transition:background .15s,border-color .15s;position:relative;}
+.cat:hover{background:var(--panel-2);border-color:var(--border-2)}
+.cat.active{background:linear-gradient(90deg, rgba(107,155,255,.22), rgba(138,107,255,.10));border-color:var(--accent)}
+.cat .cat-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:560}
+.cat .count{font-size:11px;padding:1px 7px;border-radius:999px;background:var(--panel-2);border:1px solid var(--border-2);color:var(--muted)}
+.cat .cat-actions{display:flex;gap:2px;opacity:0;transition:opacity .15s}
+.cat:hover .cat-actions,.cat:focus-within .cat-actions{opacity:1}
+.cat .cat-actions button{padding:3px 6px;font-size:11px;background:transparent;border-color:transparent}
+.cat .cat-actions button:hover{background:var(--panel);border-color:var(--border-2)}
+.cat.drop-hover{background:rgba(58,211,154,.18)!important;border-color:var(--ok)!important;box-shadow:inset 0 0 0 1px var(--ok)}
+.cat .swatch{width:8px;height:8px;border-radius:50%;flex:0 0 8px;background:var(--accent)}
+.side-note{padding:10px 14px;font-size:11px;color:var(--muted-2);border-top:1px solid var(--border-2)}
+
+.workspace{display:flex;flex-direction:column;min-height:0;min-width:0}
+.ws-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 16px;border-bottom:1px solid var(--border-2)}
+.ws-title{font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px}
+.ws-title .sub{font-weight:400;color:var(--muted-2);font-size:12px}
+.bulk{display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap}
+.bulk .bc{font-size:12px;color:var(--muted)}
+.hidden{display:none!important}
+
+.list{flex:1;min-height:0;overflow:auto;padding:10px 14px 26px}
+
+.item{display:flex;align-items:flex-start;gap:9px;padding:9px 10px;margin-bottom:6px;
+  border:1px solid var(--border-2);border-radius:var(--radius);background:var(--panel-2);
+  transition:border-color .15s, background .15s, box-shadow .15s;position:relative;}
+.item:hover{border-color:var(--border);background:var(--panel)}
+.item.selected{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset;background:rgba(107,155,255,.06)}
+.item.dragging{opacity:.4}
+.item.drop-before::before,.item.drop-after::after{
+  content:"";position:absolute;left:8px;right:8px;height:2px;background:var(--accent);border-radius:2px;
+  box-shadow:0 0 8px var(--accent);}
+.item.drop-before::before{top:-4px}
+.item.drop-after::after{bottom:-4px}
+.item .chk{display:flex;align-items:center;padding-top:2px}
+.item .chk input{width:15px;height:15px;accent-color:var(--accent);cursor:pointer}
+.item .grip{cursor:grab;color:var(--muted-2);font-size:15px;line-height:1;padding:2px 2px 0;user-select:none;flex:0 0 auto}
+.item .grip:active{cursor:grabbing}
+.item .body{flex:1;min-width:0}
+.item .r1{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.item .lbl{font-weight:640;font-size:13px;overflow-wrap:anywhere}
+.item .lbl.muted{color:var(--muted-2);font-weight:400;font-style:italic}
+.item .tag{font-size:10px;padding:1px 6px;border-radius:5px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  background:var(--panel);border:1px solid var(--border-2);color:var(--muted);white-space:nowrap;}
+.item .tag.norm{color:var(--warn);border-color:rgba(255,189,69,.35);cursor:help}
+.item .tag.class-tag{color:var(--accent-2);border-color:rgba(138,107,255,.30);background:rgba(138,107,255,.08)}
+.item .tag.section-tag{color:var(--ok);border-color:rgba(58,211,154,.30);background:rgba(58,211,154,.08)}
+.item .r2{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;color:var(--accent);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px;}
+html[data-theme="light"] .item .r2{color:#1b49b8}
+.item .r2 .orig{color:var(--muted-2);font-size:11px;text-decoration:line-through;opacity:.75;margin-left:8px}
+.item .r3{font-size:11px;color:var(--muted-2);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item .r3 .dot{opacity:.5;margin:0 3px}
+.item .acts{display:flex;gap:3px;flex:0 0 auto;align-items:center}
+.item .acts button{padding:5px 7px;font-size:12px;background:transparent;border-color:transparent;color:var(--muted)}
+.item .acts button:hover{background:var(--panel);border-color:var(--border-2);color:var(--text)}
+.item .acts button.danger:hover{color:var(--danger);border-color:rgba(255,107,129,.35);background:rgba(255,107,129,.12)}
+
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  text-align:center;padding:56px 20px;color:var(--muted);}
+.empty .big{font-size:38px;opacity:.6}
+.empty h3{margin:0;font-size:15px;color:var(--text)}
+.empty p{margin:0;font-size:12.5px;max-width:420px;color:var(--muted-2)}
+
+#toasts{position:fixed;right:16px;bottom:16px;z-index:200;display:flex;flex-direction:column;gap:8px;align-items:flex-end;pointer-events:none}
+.toast{padding:10px 14px;border-radius:10px;font-size:12.5px;max-width:380px;background:var(--solid);
+  border:1px solid var(--border);color:var(--text);box-shadow:var(--shadow);
+  animation:toastIn .22s ease-out;pointer-events:auto;}
+.toast.ok{border-left:3px solid var(--ok)}
+.toast.warn{border-left:3px solid var(--warn)}
+.toast.err{border-left:3px solid var(--danger)}
+.toast.out{animation:toastOut .28s ease-in forwards}
+@keyframes toastIn{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes toastOut{to{opacity:0;transform:translateY(6px) scale(.98)}}
+
+.modal{position:fixed;inset:0;z-index:150;display:none;align-items:center;justify-content:center;padding:18px;
+  background:rgba(4,8,20,.6);backdrop-filter:blur(4px);}
+html[data-theme="light"] .modal{background:rgba(20,30,60,.35)}
+.modal.open{display:flex}
+.modal-box{width:100%;max-width:620px;max-height:88vh;overflow:auto;background:var(--solid);
+  border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:18px 18px 16px;
+  animation:toastIn .2s ease-out;}
+.modal-box.small{max-width:460px}
+.modal-box.wide{max-width:960px}
+.modal-box h3{margin:0 0 4px;font-size:15.5px}
+.modal-box .hint{margin:0 0 14px;font-size:12px;color:var(--muted-2)}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:11.5px;font-weight:650;color:var(--muted);margin-bottom:5px;letter-spacing:.3px}
+.field input[type=text],.field textarea,.field select{width:100%;padding:9px 11px;border-radius:9px;
+  border:1px solid var(--border);background:var(--panel-2);color:var(--text);}
+.field textarea{resize:vertical;min-height:64px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
+.meta-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;padding:10px;
+  border-radius:10px;background:var(--panel-2);border:1px solid var(--border-2);font-size:11.5px;margin-bottom:14px;}
+.meta-grid div span{display:block;color:var(--muted-2);font-size:10.5px;text-transform:uppercase;letter-spacing:.5px}
+.meta-grid div b{font-weight:560;overflow-wrap:anywhere}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;flex-wrap:wrap}
+.modal-actions .left{margin-right:auto}
+.radio-list{display:flex;flex-direction:column;gap:4px;max-height:280px;overflow:auto;padding-right:4px}
+.radio-list label{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:9px;
+  border:1px solid var(--border-2);cursor:pointer;font-size:13px;}
+.radio-list label:hover{background:var(--panel-2);border-color:var(--border)}
+.radio-list input{accent-color:var(--accent)}
+.tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.tabs button{border-radius:999px;padding:6px 14px}
+.tabs button.active{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;border-color:transparent}
+.out-area{width:100%;min-height:230px;max-height:42vh;resize:vertical;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.6;
+  padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--panel-2);color:var(--text);
+  white-space:pre;overflow:auto;}
+
+.norm-opt{display:flex;gap:10px;padding:10px 11px;border-radius:10px;border:1px solid var(--border-2);
+  margin-bottom:8px;cursor:pointer;transition:background .15s,border-color .15s;}
+.norm-opt:hover{background:var(--panel-2);border-color:var(--border)}
+.norm-opt.checked{background:rgba(107,155,255,.10);border-color:var(--accent)}
+.norm-opt input{margin-top:3px;accent-color:var(--accent);cursor:pointer}
+.norm-opt .n-body{flex:1;min-width:0}
+.norm-opt b{display:block;font-size:12.8px;font-weight:620}
+.norm-opt .sub{font-size:11px;color:var(--muted-2);margin-top:2px;overflow-wrap:anywhere}
+.norm-opt code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;background:var(--panel);
+  border:1px solid var(--border-2);border-radius:4px;padding:0 4px;}
+.norm-preview{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;padding:9px 11px;
+  border-radius:9px;background:var(--panel-2);border:1px solid var(--border-2);margin-top:12px;
+  word-break:break-all;max-height:120px;overflow:auto;}
+.norm-preview .k{color:var(--muted-2)}
+.norm-preview .old{color:var(--danger);text-decoration:line-through;opacity:.8}
+.norm-preview .new{color:var(--ok);font-weight:600}
+
+/* ============ SMART GROUP ============ */
+.smart-toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
+.smart-toolbar .pill{padding:4px 11px;border-radius:999px;font-size:11.5px;border:1px solid var(--border-2);
+  background:var(--panel-2);cursor:pointer;color:var(--muted);transition:all .15s}
+.smart-toolbar .pill:hover{color:var(--text);border-color:var(--border)}
+.smart-toolbar .pill.on{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;border-color:transparent}
+.smart-toolbar .spacer{flex:1}
+.smart-toolbar .mini{font-size:11.5px;color:var(--muted-2)}
+.smart-toolbar .exp-btn{padding:4px 10px;font-size:11.5px;background:var(--panel-2);border:1px solid var(--border-2);color:var(--muted)}
+.smart-toolbar .exp-btn:hover{color:var(--text);border-color:var(--border)}
+
+.smart-list{max-height:48vh;overflow:auto;border:1px solid var(--border-2);border-radius:10px;background:var(--panel-2)}
+.smart-group{border-bottom:1px solid var(--border-2)}
+.smart-group:last-child{border-bottom:none}
+.smart-row{display:flex;align-items:flex-start;gap:8px;padding:9px 12px;cursor:pointer;transition:background .12s;user-select:none}
+.smart-row:hover{background:var(--panel)}
+.smart-row.checked{background:rgba(107,155,255,.08)}
+.smart-row input[type=checkbox]{margin-top:3px;accent-color:var(--accent);cursor:pointer;flex:0 0 auto;width:15px;height:15px}
+.smart-row .sr-caret{flex:0 0 auto;width:16px;text-align:center;line-height:1.4;
+  color:var(--muted-2);font-size:11px;transition:color .15s,transform .18s;}
+.smart-row:hover .sr-caret{color:var(--text)}
+.smart-row .sr-body{flex:1;min-width:0}
+.smart-row .sr-name{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;font-weight:600;overflow-wrap:anywhere}
+.smart-row .sr-meta{font-size:11px;color:var(--muted-2);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.smart-row .sr-count{font-size:11px;padding:2px 8px;border-radius:999px;background:var(--panel);
+  border:1px solid var(--border-2);color:var(--muted);flex:0 0 auto;align-self:center}
+.smart-row .sr-ico{font-size:15px;flex:0 0 auto;width:22px;text-align:center;line-height:1.4}
+.smart-details{padding:8px 14px 12px 46px;background:rgba(0,0,0,.14);border-top:1px dashed var(--border-2);animation:sdIn .18s ease-out;}
+html[data-theme="light"] .smart-details{background:rgba(16,28,60,.035)}
+@keyframes sdIn{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
+.sd-link{padding:7px 10px;margin:5px 0;border-radius:8px;background:var(--panel-2);border:1px solid var(--border-2);
+  font-size:11.5px;transition:border-color .15s,background .15s;}
+.sd-link:hover{border-color:var(--border);background:var(--panel)}
+.sd-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.sd-label{font-weight:600;overflow-wrap:anywhere}
+.sd-label.muted{color:var(--muted-2);font-weight:400;font-style:italic}
+.sd-tag{font-size:10px;padding:1px 6px;border-radius:5px;
+  font-family:ui-monospace,Menlo,Consolas,monospace;
+  background:var(--panel);border:1px solid var(--border-2);color:var(--muted);white-space:nowrap;}
+.sd-tag.cat{color:var(--ok);border-color:rgba(58,211,154,.28);background:rgba(58,211,154,.06)}
+.sd-url{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;color:var(--accent);
+  overflow-wrap:anywhere;word-break:break-all;margin-top:2px}
+html[data-theme="light"] .sd-url{color:#1b49b8}
+.sd-meta{font-size:10.5px;color:var(--muted-2);margin-top:2px}
+.sd-more{text-align:center;font-size:11px;color:var(--muted-2);padding:6px 0 2px;font-style:italic}
+.smart-empty{padding:26px;text-align:center;color:var(--muted-2);font-size:12.5px}
+.smart-summary{margin-top:10px;font-size:12px;color:var(--muted)}
+.smart-summary b{color:var(--text)}
+.smart-checkall{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);cursor:pointer}
+
+/* ============ CATEGORY EXPORT MODAL ============ */
+.ce-topbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.ce-topbar .mini{font-size:11.5px;color:var(--muted-2)}
+.ce-topbar .spacer{flex:1}
+.cat-export-list{max-height:54vh;overflow:auto;padding-right:4px}
+.ce-row{border:1px solid var(--border-2);border-radius:10px;margin-bottom:8px;
+  background:var(--panel-2);overflow:hidden;transition:border-color .15s}
+.ce-row:hover{border-color:var(--border)}
+.ce-head{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--panel-2);
+  border-bottom:1px solid var(--border-2)}
+.ce-name{font-weight:640;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
+.ce-count{font-size:11px;padding:1px 8px;border-radius:999px;background:var(--panel);
+  border:1px solid var(--border-2);color:var(--muted);flex:0 0 auto}
+.ce-actions{display:flex;gap:4px;flex:0 0 auto}
+.ce-actions button{padding:4px 9px;font-size:11.5px}
+.ce-preview{padding:7px 12px;background:rgba(0,0,0,.16);
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:11.5px;line-height:1.5;color:var(--accent);
+  white-space:pre;overflow-x:auto;overflow-y:hidden;min-height:32px;
+  -webkit-user-select:text;user-select:text;}
+html[data-theme="light"] .ce-preview{background:rgba(16,28,60,.05);color:#1b49b8}
+.ce-preview::-webkit-scrollbar{height:6px}
+.ce-preview::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+.ce-preview .empty-note{color:var(--muted-2);font-style:italic}
+.ce-empty{padding:26px;text-align:center;color:var(--muted-2);font-size:12.5px}
+
+#dropOverlay{position:fixed;inset:0;z-index:300;display:none;align-items:center;justify-content:center;
+  background:rgba(6,12,28,.72);backdrop-filter:blur(6px);border:3px dashed var(--accent);}
+#dropOverlay.on{display:flex}
+#dropOverlay .box{text-align:center;color:var(--text);padding:28px 36px;border-radius:16px;
+  background:var(--panel);border:1px solid var(--border);}
+#dropOverlay .box .big{font-size:44px;display:block;margin-bottom:8px}
+
+#mobileCats{display:none}
+
+@media (max-width: 900px){
+  body{overflow:auto}
+  .app{height:auto;min-height:100dvh;overflow:visible}
+  .main{grid-template-columns:1fr;overflow:visible}
+  .sidebar{border-right:none;border-bottom:1px solid var(--border);max-height:none}
+  .sidebar.hidden{display:none}
+  .cat-list{max-height:240px}
+  .list{max-height:none;overflow:visible;padding-bottom:60px}
+  .stats{order:3;width:100%;margin-left:0}
+  #mobileCats{display:inline-flex}
+  .brand .sub{max-width:140px}
+  .item .acts{flex-wrap:wrap;max-width:88px;justify-content:flex-end}
+  .smart-details{padding-left:18px}
+}
+@media (max-width: 560px){
+  .topbar{padding:8px 10px;gap:8px}
+  .toolbar{padding:8px 10px}
+  .list{padding:8px 8px 60px}
+  .item{padding:8px}
+  .item .grip{display:none}
+  .brand h1{font-size:13.5px}
+  .brand .sub{display:none}
+}
+@media print{
+  body{background:#fff;color:#000;overflow:visible}
+  .topbar,.toolbar,.sidebar,.ws-head,#toasts,.modal,.item .acts,.item .chk,.item .grip{display:none!important}
+  .main{grid-template-columns:1fr}
+  .list{overflow:visible}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">🔗</div>
+      <div>
+        <h1>Link Scraper <span>&amp; Organizer</span></h1>
+        <div class="sub" id="projectSub">Local-first · no upload · file:// ready</div>
+      </div>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div class="top-actions">
+      <span class="net" id="netStatus"><span class="dot"></span><span id="netText">Online</span></span>
+      <button id="mobileCats" class="icon" title="Toggle categories">☰</button>
+      <button id="themeBtn" class="icon" title="Toggle theme">🌙</button>
+      <button id="saveBtn" title="Save workspace to local storage">💾 Save</button>
+      <button id="resetBtn" class="danger" title="Erase all workspace data">⟲ Reset</button>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <button id="importFilesBtn" class="primary">📄 Import HTML</button>
+    <button id="importFolderBtn">📁 Import Folder</button>
+    <input type="file" id="fileInput" accept=".html,.htm,.xhtml,text/html" multiple hidden>
+    <input type="file" id="folderInput" multiple hidden>
+
+    <div class="search">
+      <span class="ico">🔍</span>
+      <input id="searchInput" type="text" placeholder="Search label, URL, source file, element, attribute…" autocomplete="off">
+    </div>
+
+    <select id="typeFilter" title="Filter by link type">
+      <option value="all">All types</option>
+      <option value="link">Links / Anchors</option>
+      <option value="image">Images</option>
+      <option value="script">Scripts</option>
+      <option value="stylesheet">Stylesheets</option>
+      <option value="embed">Embeds</option>
+      <option value="media">Media</option>
+      <option value="form">Forms / Inputs</option>
+      <option value="other">Other</option>
+    </select>
+
+    <button id="smartBtn" class="smartBtn" title="Auto-detect groups from headings, classes, data-* attributes, parents, and domains">🧠 Smart Group</button>
+    <button id="normBtn" class="warnBtn" title="URL normalization settings">🔧 Normalize</button>
+    <button id="exportBtn">📤 Export</button>
+  </div>
+
+  <div class="main">
+    <aside class="sidebar" id="sidebar">
+      <div class="side-head">
+        <span>Categories</span>
+        <button id="addCatBtn" class="ghost" style="padding:3px 8px;font-size:11px">+ New</button>
+      </div>
+      <div class="cat-list" id="catList"></div>
+      <div class="side-note">Drag link items onto a category to assign it. Drag between items to reorder.</div>
+    </aside>
+
+    <section class="workspace">
+      <div class="ws-head">
+        <div class="ws-title" id="wsTitle">All Links</div>
+        <div class="bulk">
+          <button id="selectAllBtn" class="ghost">☑ Select all</button>
+          <button id="catExportBtn" class="exportBtn" title="Export each category as a separate .txt file">📥 Category .txt</button>
+          <span class="bc hidden" id="bulkCount"></span>
+          <button id="bulkMove" class="hidden">➜ Move…</button>
+          <button id="bulkDelete" class="danger hidden">🗑 Delete</button>
+          <button id="bulkClear" class="ghost hidden">Clear</button>
+        </div>
+      </div>
+      <div class="list" id="list"></div>
+    </section>
+  </div>
+</div>
+
+<div id="dropOverlay">
+  <div class="box">
+    <span class="big">📥</span>
+    <div style="font-size:16px;font-weight:650">Drop HTML files or a folder</div>
+    <div style="font-size:12.5px;color:var(--muted);margin-top:4px">Files stay on your device — nothing is uploaded.</div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+<!-- ============ MODAL: CATEGORY EXPORT ============ -->
+<div class="modal" id="catExportModal">
+  <div class="modal-box wide">
+    <h3>📥 Export per Category (.txt)</h3>
+    <p class="hint">Each category exports as a single-line plain text file with links joined by <code>; </code> (semicolon + 1 space). No wrap, no metadata — ready for tools that accept raw link lists. Filename matches the category name.</p>
+
+    <div class="ce-topbar">
+      <span class="mini" id="ceSummary"></span>
+      <span class="spacer"></span>
+      <button id="ceCopyAll" class="ghost" title="Copy all categories to clipboard (concatenated)">⧉ Copy all</button>
+      <button id="ceSaveAll" class="primary" title="Download each category as its own .txt">💾 Save all as .txt</button>
+    </div>
+
+    <div class="cat-export-list" id="catExportList"></div>
+
+    <div class="modal-actions">
+      <button id="ceClose">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL: SMART GROUP ============ -->
+<div class="modal" id="smartModal">
+  <div class="modal-box wide">
+    <h3>🧠 Smart Auto-Categorize</h3>
+    <p class="hint">Detected groups from <b>heading sections</b>, HTML classes, <code>data-*</code> attributes, parent elements, and domains. <b>Click a row to expand and inspect the links inside.</b> Check the ones you want to turn into categories.</p>
+
+    <div class="smart-toolbar">
+      <span class="pill on" data-filter="all">All</span>
+      <span class="pill" data-filter="section">📑 Sections</span>
+      <span class="pill" data-filter="class">🏷️ Classes</span>
+      <span class="pill" data-filter="parent">📁 Parents</span>
+      <span class="pill" data-filter="attr">⚙️ Data attrs</span>
+      <span class="pill" data-filter="domain">🌐 Domains</span>
+      <span class="spacer"></span>
+      <button class="exp-btn" id="smartExpandAll" type="button" title="Expand all shown groups">▾ Expand all</button>
+      <button class="exp-btn" id="smartCollapseAll" type="button" title="Collapse all groups">▸ Collapse all</button>
+      <label class="smart-checkall"><input type="checkbox" id="smartOnlyUnassigned" checked> Only Unassigned</label>
+    </div>
+
+    <div class="smart-list" id="smartList"></div>
+
+    <div class="smart-summary" id="smartSummary"></div>
+
+    <div class="modal-actions">
+      <label class="smart-checkall left"><input type="checkbox" id="smartCheckAll"> Select all shown</label>
+      <button id="smartCancel">Cancel</button>
+      <button class="primary" id="smartApply">Create categories &amp; assign</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL: NORMALIZE ============ -->
+<div class="modal" id="normModal">
+  <div class="modal-box">
+    <h3>🔧 URL Normalization</h3>
+    <p class="hint">Clean up extracted links. Original URLs are always preserved so you can revert anytime.</p>
+
+    <label class="norm-opt" id="optWww">
+      <input type="checkbox" id="normWww">
+      <div class="n-body">
+        <b>Prefix bare <code>www.</code> URLs with <code>https://</code></b>
+        <div class="sub"><code>www.example.com</code> → <code>https://www.example.com</code> &nbsp;·&nbsp; URLs already having a scheme or starting with <code>//</code> are left unchanged.</div>
+      </div>
+    </label>
+
+    <label class="norm-opt" id="optDecode">
+      <input type="checkbox" id="normDecode">
+      <div class="n-body">
+        <b>Decode percent-encoding</b>
+        <div class="sub"><code>%3A</code> → <code>:</code> &nbsp; <code>%2F</code> → <code>/</code> &nbsp; <code>%20</code> → <i>space</i></div>
+      </div>
+    </label>
+
+    <label class="norm-opt" id="optTracking">
+      <input type="checkbox" id="normTracking">
+      <div class="n-body">
+        <b>Strip tracking / ID parameters</b>
+        <div class="sub"><code>utm_*</code> <code>fbclid</code> <code>gclid</code> <code>usg</code> <code>sa</code> <code>sntz</code> <code>_ga</code> …</div>
+      </div>
+    </label>
+
+    <label class="norm-opt" id="optRedirect">
+      <input type="checkbox" id="normRedirect">
+      <div class="n-body">
+        <b>Extract target from redirect URLs</b>
+        <div class="sub"><code>google.com/url?q=…</code> · <code>facebook.com/l.php?u=…</code> · <code>youtube.com/redirect?q=…</code></div>
+      </div>
+    </label>
+
+    <div class="norm-preview" id="normPreview"><span class="k">Preview (first matching link):</span><br><span class="k">—</span></div>
+
+    <div class="modal-actions">
+      <button class="ghost left" id="normCancel">Cancel</button>
+      <button id="normSaveOnly">Save for imports</button>
+      <button class="primary" id="normApplyAll">Save &amp; apply to existing links</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL: EDIT LINK ============ -->
+<div class="modal" id="editModal">
+  <div class="modal-box">
+    <h3>Edit Link</h3>
+    <p class="hint">Change the label, URL, or category. Source metadata stays as a reference.</p>
+    <div class="meta-grid" id="editMeta"></div>
+    <div class="field"><label for="editLabel">Label</label><input type="text" id="editLabel" placeholder="(no label)"></div>
+    <div class="field"><label for="editUrl">URL / Link</label><textarea id="editUrl" spellcheck="false"></textarea></div>
+    <div class="field" id="editOrigField" style="display:none">
+      <label>Original URL (from HTML)</label>
+      <input type="text" id="editOrigUrl" readonly style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;background:var(--panel)">
+      <div style="display:flex;gap:6px;margin-top:6px">
+        <button type="button" class="ghost" id="editRevert" style="font-size:11.5px;padding:4px 9px">↺ Revert to original</button>
+      </div>
+    </div>
+    <div class="field"><label for="editCat">Category</label><select id="editCat"></select></div>
+    <div class="modal-actions">
+      <button class="ghost left" id="editCopy">⧉ Copy URL</button>
+      <button id="editCancel">Cancel</button>
+      <button class="primary" id="editSave">Save changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL: MOVE ============ -->
+<div class="modal" id="moveModal">
+  <div class="modal-box small">
+    <h3 id="moveTitle">Move to category</h3>
+    <p class="hint" id="moveHint"></p>
+    <div class="radio-list" id="moveList"></div>
+    <div class="modal-actions">
+      <button id="moveCancel">Cancel</button>
+      <button class="primary" id="moveOk">Move</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL: CATEGORY ============ -->
+<div class="modal" id="catModal">
+  <div class="modal-box small">
+    <h3 id="catTitle">New category</h3>
+    <p class="hint">Category names must be unique and non-empty.</p>
+    <div class="field"><label for="catName">Category name</label>
+      <input type="text" id="catName" maxlength="48" placeholder="e.g. Portfolio, Docs, Partners"></div>
+    <div class="modal-actions">
+      <button id="catCancel">Cancel</button>
+      <button class="primary" id="catSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL: CONFIRM ============ -->
+<div class="modal" id="confirmModal">
+  <div class="modal-box small">
+    <h3 id="cfTitle">Confirm</h3>
+    <p class="hint" id="cfMsg" style="margin-bottom:0"></p>
+    <div class="modal-actions">
+      <button id="cfCancel">Cancel</button>
+      <button id="cfOk" class="danger">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL: EXPORT ============ -->
+<div class="modal" id="exportModal">
+  <div class="modal-box wide">
+    <h3>Export &amp; Report</h3>
+    <p class="hint">Detailed report keeps categories and context. Link Only is a raw <code>;</code>-separated string.</p>
+    <div class="tabs">
+      <button id="tabDetailed" class="active">📋 Detailed Report</button>
+      <button id="tabLinkOnly">🔗 Link Only</button>
+    </div>
+    <div class="field" style="margin-bottom:10px">
+      <label for="scopeSel">Scope</label>
+      <select id="scopeSel">
+        <option value="all">Entire workspace</option>
+        <option value="category">Current category only</option>
+      </select>
+    </div>
+    <textarea class="out-area" id="outArea" readonly spellcheck="false"></textarea>
+    <div class="modal-actions">
+      <button class="ghost left" id="expRegen">⟳ Refresh</button>
+      <button id="expClose">Close</button>
+      <button id="expSaveTxt">💾 Save .txt</button>
+      <button id="expCopy">⧉ Copy</button>
+      <button id="expPrint" class="primary">🖨 PDF / Print</button>
+    </div>
+  </div>
+</div>
+
+<iframe id="printFrame" title="print" style="position:fixed;left:-10000px;top:0;width:1px;height:1px;border:0"></iframe>
+
+<script>
+"use strict";
+/* ==================================================================
+   LINK SCRAPER & ORGANIZER
+   URL detection: http/https + www. + relative paths
+   Rejected: hash-only anchors (#x), javascript:, data:, about:, mailto:, tel:, sms:
+   ================================================================== */
+const $  = (s, r) => (r || document).querySelector(s);
+const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => (
+  { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]
+));
+
+const LS_KEY = "linkScraperOrganizer.v1";
+const HTML_EXT = /\.(html?|xhtml)$/i;
+
+const GENERIC_URL_ATTRS = new Set([
+  "href","src","action","formaction","poster","cite","background",
+  "manifest","longdesc","xlink:href","srcset","data-src","data-srcset",
+  "data-href","data-url","data-link","data-original","data-bg"
+]);
+
+const state = {
+  links: [], categories: [], files: [], rawRefs: 0,
+  projectName: "Untitled Workspace", activeCategory: "all",
+  search: "", filterType: "all", theme: "dark",
+  nextId: 1, nextCatId: 1,
+  norm: { prefixWww: true, decode: false, stripTracking: false, extractRedirect: false }
+};
+
+let selected = new Set();
+let dragId = null;
+let renderLimit = 250;
+let saveTimer = null;
+let cfResolve = null;
+let moveTargets = [];
+let editingId = null;
+let editingCatId = null;
+let currentTab = "detailed";
+let smartGroups = [];
+let smartFilter = "all";
+let smartChecked = new Set();
+let smartExpanded = new Set();
+const SMART_DETAIL_MAX = 200;
+
+/* ==================================================================
+   URL NORMALIZATION
+   ================================================================== */
+
+/** Add https:// to bare "www.example.com/..." URLs. */
+function prefixWwwProtocol(url){
+  if(!url) return url;
+  const v = String(url).trim();
+  if(!v) return v;
+  // Already has a scheme (http:, https:, ftp:, mailto:, etc.)
+  if(/^[a-z][a-z0-9+.\-]*:/i.test(v)) return v;
+  // Protocol-relative (//example.com)
+  if(v.startsWith("//")) return v;
+  // Bare www. prefix
+  if(/^www\./i.test(v)) return "https://" + v;
+  return v;
+}
+
+function decodePercent(url){
+  if(!url) return url;
+  try{
+    return String(url).replace(/%([0-9A-Fa-f]{2})/g, function(m, hex){
+      const code = parseInt(hex, 16);
+      if(code >= 0x20 && code < 0x7F && code !== 0x25) return String.fromCharCode(code);
+      return m;
+    });
+  }catch(e){ return url; }
+}
+const TRACKING_PARAMS = new Set([
+  "fbclid","gclid","dclid","msclkid","twclid","yclid","igshid","igid","ttclid",
+  "mc_cid","mc_eid","mkt_tok","_ga","_gl","_hsenc","_hsmi","vero_id","wickedid",
+  "trk","trkcampaign","elqtrackid","elqtrack","sc_cid","scid",
+  "ref_src","ref_url","share_source","share_medium","share_pl","share_id",
+  "campaign_id","campaignid","site_id","siteid",
+  "sa","sntz","usg","uact","ved","ei","oq","gs_lcp","sclient","source",
+  "spm","scm","s_cid","spm_id_from","si","pp","feature"
+]);
+function isTrackingParam(name){
+  const n = String(name).toLowerCase();
+  if(n.indexOf("utm_") === 0) return true;
+  if(n.indexOf("pk_") === 0)  return true;
+  if(n.indexOf("mtm_") === 0) return true;
+  return TRACKING_PARAMS.has(n);
+}
+function stripTracking(url){
+  if(!url) return url;
+  try{
+    const u = new URL(url);
+    const toDelete = [];
+    u.searchParams.forEach((v, k) => { if(isTrackingParam(k)) toDelete.push(k); });
+    if(!toDelete.length) return url;
+    toDelete.forEach(k => u.searchParams.delete(k));
+    u.search = u.searchParams.toString();
+    let out = u.toString();
+    if(out.endsWith("?")) out = out.slice(0, -1);
+    return out;
+  }catch(e){ return url; }
+}
+function extractRedirect(url){
+  if(!url) return url;
+  try{
+    const u = new URL(url);
+    const host = u.hostname.toLowerCase();
+    const p = u.searchParams;
+    const pick = (...names) => {
+      for(let i = 0; i < names.length; i++){
+        const v = p.get(names[i]);
+        if(v && /^https?:\/\//i.test(v)) return v;
+      }
+      return null;
+    };
+    let target = null;
+    if(/^(www\.)?google\.[a-z.]+$/i.test(host) && u.pathname === "/url") target = pick("q","url");
+    else if(/(^|\.)facebook\.com$/i.test(host) && (u.pathname === "/l.php" || u.pathname === "/l/")) target = pick("u");
+    else if(/(^|\.)youtube\.com$/i.test(host) && u.pathname === "/redirect") target = pick("q","url");
+    else if(/(^|\.)linkedin\.com$/i.test(host) && u.pathname.indexOf("/redir/redirect") === 0) target = pick("url");
+    else if(/(^|\.)duckduckgo\.com$/i.test(host) && u.pathname.indexOf("/l/") === 0) target = pick("uddg");
+    else if(host === "out.reddit.com") target = pick("url");
+    else if(/(^|\.)list-manage\.com$/i.test(host)) target = pick("u","url");
+    if(target) return decodePercent(target);
+  }catch(e){}
+  return url;
+}
+function normalizeUrl(url, opts){
+  opts = opts || state.norm;
+  if(!url) return url;
+  let out = String(url);
+  if(opts.extractRedirect) out = extractRedirect(out);
+  if(opts.prefixWww)       out = prefixWwwProtocol(out);
+  if(opts.decode)          out = decodePercent(out);
+  if(opts.stripTracking)   out = stripTracking(out);
+  return out;
+}
+
+/* ==================================================================
+   PERSISTENCE
+   ================================================================== */
+function saveNow(){
+  try{
+    localStorage.setItem(LS_KEY, JSON.stringify({
+      links: state.links, categories: state.categories, files: state.files,
+      rawRefs: state.rawRefs, projectName: state.projectName,
+      activeCategory: state.activeCategory, filterType: state.filterType,
+      theme: state.theme, nextId: state.nextId, nextCatId: state.nextCatId,
+      norm: state.norm, savedAt: new Date().toISOString()
+    }));
+    return true;
+  }catch(err){ console.warn("Save failed", err); toast("Could not save workspace (storage limit reached?)", "err"); return false; }
+}
+function save(){ clearTimeout(saveTimer); saveTimer = setTimeout(saveNow, 350); }
+
+function load(){
+  let raw = null;
+  try{ raw = localStorage.getItem(LS_KEY); }catch(e){ return false; }
+  if(!raw) return false;
+  try{
+    const d = JSON.parse(raw);
+    state.links = Array.isArray(d.links) ? d.links : [];
+    state.categories = Array.isArray(d.categories) ? d.categories : [];
+    state.files = Array.isArray(d.files) ? d.files : [];
+    state.rawRefs = d.rawRefs || 0;
+    state.projectName = d.projectName || "Untitled Workspace";
+    state.activeCategory = d.activeCategory || "all";
+    state.filterType = d.filterType || "all";
+    state.theme = d.theme === "light" ? "light" : "dark";
+    state.nextId = d.nextId || (state.links.length + 1);
+    state.nextCatId = d.nextCatId || (state.categories.length + 1);
+    if(d.norm && typeof d.norm === "object"){
+      state.norm = {
+        prefixWww: d.norm.prefixWww !== false,   // default ON
+        decode: !!d.norm.decode,
+        stripTracking: !!d.norm.stripTracking,
+        extractRedirect: !!d.norm.extractRedirect
+      };
+    }
+    state.links.forEach(l => {
+      if(!l.occurrences) l.occurrences = [{ sourceFile:l.sourceFile, element:l.element, attribute:l.attribute }];
+      if(typeof l.order !== "number") l.order = 0;
+      if(typeof l.originalOrder !== "number") l.originalOrder = l.order;
+      if(!l.categoryId) l.categoryId = "unassigned";
+      if(!l.urlOriginal) l.urlOriginal = l.url;
+      if(typeof l.normalized !== "boolean") l.normalized = (l.urlOriginal !== l.url);
+      if(!Array.isArray(l.classes)) l.classes = [];
+      if(typeof l.parentPath !== "string") l.parentPath = "";
+      if(!l.dataAttrs || typeof l.dataAttrs !== "object") l.dataAttrs = {};
+      if(typeof l.elId !== "string") l.elId = "";
+      if(typeof l.sectionHeading !== "string") l.sectionHeading = "";
+      if(typeof l.sectionLevel !== "number") l.sectionLevel = 0;
+    });
+    return true;
+  }catch(err){ console.warn("Load failed", err); return false; }
+}
+
+/* ==================================================================
+   TOASTS / CONFIRM / MODAL
+   ================================================================== */
+function toast(msg, type){
+  const el = document.createElement("div");
+  el.className = "toast " + (type || "ok");
+  el.textContent = msg;
+  $("#toasts").appendChild(el);
+  setTimeout(() => { el.classList.add("out"); setTimeout(() => el.remove(), 300); }, 3400);
+}
+function confirmDialog(title, msg, okLabel, danger){
+  return new Promise(resolve => {
+    cfResolve = resolve;
+    $("#cfTitle").textContent = title;
+    $("#cfMsg").textContent = msg;
+    const ok = $("#cfOk");
+    ok.textContent = okLabel || "Confirm";
+    ok.className = (danger === false) ? "primary" : "danger";
+    openModal("confirmModal");
+  });
+}
+$("#cfOk").addEventListener("click", () => { closeModal("confirmModal"); if(cfResolve){ cfResolve(true); cfResolve = null; } });
+$("#cfCancel").addEventListener("click", () => { closeModal("confirmModal"); if(cfResolve){ cfResolve(false); cfResolve = null; } });
+function openModal(id){ $("#" + id).classList.add("open"); }
+function closeModal(id){ $("#" + id).classList.remove("open"); }
+$$(".modal").forEach(m => {
+  m.addEventListener("mousedown", e => {
+    if(e.target === m && m.id !== "confirmModal") m.classList.remove("open");
+  });
+});
+document.addEventListener("keydown", e => {
+  if(e.key === "Escape"){
+    const open = $$(".modal.open");
+    if(open.length) open[open.length - 1].classList.remove("open");
+  }
+});
+
+/* ==================================================================
+   HTML SCRAPING
+   ================================================================== */
+function attrIsUrl(tag, attr){
+  if(attr === "data") return tag === "object";
+  if(attr === "srcset" || attr === "data-srcset") return true;
+  return GENERIC_URL_ATTRS.has(attr);
+}
+
+/**
+ * Decide whether an extracted value is a real, useful link.
+ * Accepts: http://, https://, protocol-relative //, bare www., relative paths (/, ./, ../, plain)
+ * Rejects: hash-only anchors (#x, #), javascript:, data:, about:, mailto:, tel:, sms:, empty
+ */
+function isUsefulUrl(u){
+  if(!u) return false;
+  const v = String(u).trim();
+  if(!v) return false;
+  if(v.charAt(0) === "#") return false;                    // #, #section, #/route, #!
+  if(/^javascript:/i.test(v)) return false;
+  if(/^data:/i.test(v)) return false;
+  if(/^about:/i.test(v)) return false;
+  if(/^mailto:/i.test(v)) return false;
+  if(/^tel:/i.test(v)) return false;
+  if(/^sms:/i.test(v)) return false;
+  return true;
+}
+
+function parseSrcset(v){
+  return String(v || "").split(",").map(s => s.trim()).filter(Boolean).map(s => s.split(/\s+/)[0]).filter(Boolean);
+}
+function typeOf(tag, attr, el){
+  if(tag === "a" || tag === "area") return "link";
+  if(tag === "link"){
+    const rel = (el.getAttribute("rel") || "").toLowerCase();
+    if(rel.indexOf("stylesheet") !== -1) return "stylesheet";
+    if(rel.indexOf("icon") !== -1 || rel.indexOf("apple-touch") !== -1) return "image";
+    return "link";
+  }
+  if(tag === "img" || tag === "image") return "image";
+  if(tag === "script") return "script";
+  if(tag === "iframe" || tag === "embed" || tag === "object" || tag === "frame") return "embed";
+  if(tag === "video" || tag === "audio" || tag === "source" || tag === "track") return "media";
+  if(tag === "form" || tag === "input" || tag === "button") return "form";
+  return "other";
+}
+function contextOf(tag, type){
+  if(tag === "a" || tag === "area" || tag === "button") return "Button label";
+  switch(type){
+    case "image":      return "Image";
+    case "script":     return "Script";
+    case "stylesheet": return "Stylesheet";
+    case "embed":      return "Embed";
+    case "media":      return "Media";
+    case "form":       return "Form action";
+    default:           return "URL/Link";
+  }
+}
+function getLabel(el, tag){
+  let txt = (el.textContent || "").replace(/\s+/g, " ").trim();
+  if(!txt && el.querySelector){
+    const img = el.querySelector("img[alt]");
+    if(img) txt = (img.getAttribute("alt") || "").trim();
+  }
+  if(txt) return txt.slice(0, 160);
+  const order = ["aria-label","alt","title","value","name"];
+  for(let i = 0; i < order.length; i++){
+    const v = el.getAttribute(order[i]);
+    if(v && v.trim()) return v.trim().slice(0, 160);
+  }
+  return "";
+}
+function getParentPath(node, depth){
+  const parts = [];
+  let p = node.parentElement;
+  let d = depth || 3;
+  while(p && parts.length < d){
+    const tag = p.tagName.toLowerCase();
+    if(tag === "html") break;
+    let seg = tag;
+    const cls = (p.getAttribute("class") || "").split(/\s+/).filter(Boolean);
+    if(cls.length) seg += "." + cls[0];
+    const id = p.getAttribute("id");
+    if(id) seg += "#" + id;
+    parts.unshift(seg);
+    p = p.parentElement;
+  }
+  return parts.join(" > ");
+}
+function getClasses(el){
+  const c = el.getAttribute("class") || "";
+  return c.split(/\s+/).filter(Boolean);
+}
+function getDataAttrs(el){
+  const out = {};
+  const attrs = el.attributes;
+  for(let i = 0; i < attrs.length; i++){
+    const n = attrs[i].name.toLowerCase();
+    if(n.indexOf("data-") === 0 && n !== "data-src" && n !== "data-srcset" && n !== "data-href" && n !== "data-url" && n !== "data-link" && n !== "data-original" && n !== "data-bg"){
+      out[n] = attrs[i].value;
+    }
+  }
+  return out;
+}
+function buildHeadingMap(doc){
+  const headings = [];
+  const nodes = doc.querySelectorAll("h1, h2, h3, h4, h5, h6");
+  for(let i = 0; i < nodes.length; i++){
+    const h = nodes[i];
+    const text = (h.textContent || "").replace(/\s+/g, " ").trim();
+    if(!text) continue;
+    headings.push({ el: h, level: parseInt(h.tagName.charAt(1), 10), text: text.slice(0, 100), pos: -1 });
+  }
+  const all = doc.querySelectorAll("*");
+  const posMap = new Map();
+  for(let i = 0; i < all.length; i++) posMap.set(all[i], i);
+  headings.forEach(h => { h.pos = posMap.get(h.el) !== undefined ? posMap.get(h.el) : -1; });
+  return { headings, posMap };
+}
+function findPrecedingHeading(node, headingInfo){
+  const pos = headingInfo.posMap.get(node);
+  if(pos === undefined) return null;
+  let best = null;
+  for(let i = 0; i < headingInfo.headings.length; i++){
+    const h = headingInfo.headings[i];
+    if(h.pos < pos && h.pos !== -1){
+      if(!best || h.pos > best.pos) best = h;
+    }
+  }
+  return best;
+}
+function scanHtml(text, sourceFile, out){
+  let doc;
+  try{ doc = new DOMParser().parseFromString(text, "text/html"); }
+  catch(e){ return; }
+  const root = doc.documentElement;
+  if(!root) return;
+  const headingInfo = buildHeadingMap(doc);
+  const nodes = [];
+  const walker = doc.createTreeWalker(root, NodeFilter.SHOW_ELEMENT, null);
+  let n = root;
+  while(n){ nodes.push(n); n = walker.nextNode(); }
+
+  for(let i = 0; i < nodes.length; i++){
+    const node = nodes[i];
+    const tag = node.tagName.toLowerCase();
+    if(tag === "base") continue;
+
+    if(tag === "meta"){
+      const he = (node.getAttribute("http-equiv") || "").toLowerCase();
+      if(he === "refresh"){
+        const content = node.getAttribute("content") || "";
+        const m = content.match(/url\s*=\s*(['"]?)([^'";]+)\1/i);
+        if(m && m[2]){
+          const t = "other";
+          const heading = findPrecedingHeading(node, headingInfo);
+          out.push({
+            url: m[2].trim(), tag: tag, attr: "content",
+            type: t, context: "URL/Link",
+            label: getLabel(node, tag), sourceFile: sourceFile,
+            classes: getClasses(node), parentPath: getParentPath(node), elId: node.getAttribute("id") || "",
+            dataAttrs: getDataAttrs(node),
+            sectionHeading: heading ? heading.text : "",
+            sectionLevel: heading ? heading.level : 0
+          });
+        }
+      }
+    }
+
+    const attrs = node.attributes;
+    for(let a = 0; a < attrs.length; a++){
+      const at = attrs[a];
+      const attr = at.name.toLowerCase();
+      if(!attrIsUrl(tag, attr)) continue;
+      const val = at.value;
+      const classes = getClasses(node);
+      const parentPath = getParentPath(node);
+      const elId = node.getAttribute("id") || "";
+      const dataAttrs = getDataAttrs(node);
+      const heading = findPrecedingHeading(node, headingInfo);
+      const sectionHeading = heading ? heading.text : "";
+      const sectionLevel = heading ? heading.level : 0;
+
+      if(attr === "srcset" || attr === "data-srcset"){
+        const cands = parseSrcset(val);
+        for(let c = 0; c < cands.length; c++){
+          const t = typeOf(tag, attr, node);
+          out.push({
+            url: cands[c], tag: tag, attr: attr,
+            type: t, context: contextOf(tag, t),
+            label: getLabel(node, tag), sourceFile: sourceFile,
+            classes, parentPath, elId, dataAttrs,
+            sectionHeading, sectionLevel
+          });
+        }
+      }else{
+        const t = typeOf(tag, attr, node);
+        out.push({
+          url: val, tag: tag, attr: attr,
+          type: t, context: contextOf(tag, t),
+          label: getLabel(node, tag), sourceFile: sourceFile,
+          classes, parentPath, elId, dataAttrs,
+          sectionHeading, sectionLevel
+        });
+      }
+    }
+  }
+}
+
+/* ==================================================================
+   MERGE
+   ================================================================== */
+function addRefs(refs){
+  const byUrl = new Map();
+  state.links.forEach(l => { if(!byUrl.has(l.url)) byUrl.set(l.url, l); });
+  let nextOrder = state.links.reduce((m, l) => Math.max(m, l.order), -1) + 1;
+  let added = 0, merged = 0, skipped = 0, normalizedCount = 0;
+
+  for(let i = 0; i < refs.length; i++){
+    const r = refs[i];
+    if(!isUsefulUrl(r.url)){ skipped++; continue; }
+    const rawUrl = String(r.url).trim();
+    const finalUrl = normalizeUrl(rawUrl);
+    // Defensive: if normalization produced something we'd reject, skip
+    if(!isUsefulUrl(finalUrl)){ skipped++; continue; }
+    state.rawRefs++;
+
+    const existing = byUrl.get(finalUrl);
+    if(existing){
+      merged++;
+      existing.occurrences.push({ sourceFile: r.sourceFile, element: r.tag, attribute: r.attr });
+      continue;
+    }
+    const link = {
+      id: "L" + (state.nextId++),
+      label: r.label || "",
+      url: finalUrl,
+      urlOriginal: rawUrl,
+      normalized: finalUrl !== rawUrl,
+      sourceFile: r.sourceFile,
+      element: r.tag, attribute: r.attr,
+      context: r.context, type: r.type,
+      categoryId: "unassigned",
+      order: nextOrder, originalOrder: nextOrder,
+      occurrences: [{ sourceFile: r.sourceFile, element: r.tag, attribute: r.attr }],
+      classes: r.classes || [],
+      parentPath: r.parentPath || "",
+      elId: r.elId || "",
+      dataAttrs: r.dataAttrs || {},
+      sectionHeading: r.sectionHeading || "",
+      sectionLevel: r.sectionLevel || 0,
+      edited: false
+    };
+    if(link.normalized) normalizedCount++;
+    nextOrder++;
+    state.links.push(link);
+    byUrl.set(finalUrl, link);
+    added++;
+  }
+  return { added, merged, skipped, normalizedCount };
+}
+
+/* ==================================================================
+   CATEGORY HELPERS
+   ================================================================== */
+function catName(id){
+  if(id === "unassigned") return "Unassigned";
+  if(id === "all") return "All Links";
+  const c = state.categories.find(x => x.id === id);
+  return c ? c.name : "Unassigned";
+}
+function catExistsByName(name, exceptId){
+  const n = name.trim().toLowerCase();
+  return state.categories.some(c => c.id !== exceptId && c.name.trim().toLowerCase() === n);
+}
+function countInCategory(id){
+  if(id === "all") return state.links.length;
+  return state.links.filter(l => l.categoryId === id).length;
+}
+function categoryOrder(){
+  const arr = [{ id: "unassigned", name: "Unassigned" }];
+  state.categories.forEach(c => arr.push({ id: c.id, name: c.name }));
+  return arr;
+}
+function uniqueCatName(base){
+  base = String(base || "Group").trim().replace(/\s+/g, " ").slice(0, 48) || "Group";
+  if(!catExistsByName(base, null)) return base;
+  let i = 2;
+  while(catExistsByName(base + " (" + i + ")", null)) i++;
+  return base + " (" + i + ")";
+}
+
+/* ==================================================================
+   IMPORT
+   ================================================================== */
+function readFileText(file){
+  return new Promise((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onload = () => resolve(String(fr.result || ""));
+    fr.onerror = () => reject(fr.error);
+    fr.readAsText(file);
+  });
+}
+async function processFiles(fileObjs){
+  if(!fileObjs.length){ toast("No HTML files found in the selection.", "warn"); return; }
+  const refs = [];
+  const scanned = [];
+  for(let i = 0; i < fileObjs.length; i++){
+    const f = fileObjs[i];
+    try{
+      const text = await readFileText(f.file);
+      scanHtml(text, f.path, refs);
+      scanned.push(f.path);
+    }catch(err){ console.warn("Read error", f.path, err); }
+  }
+  if(!scanned.length){ toast("Could not read any HTML file.", "err"); return; }
+  const res = addRefs(refs);
+  scanned.forEach(p => { if(state.files.indexOf(p) === -1) state.files.push(p); });
+  saveNow(); renderAll();
+  const normNote = res.normalizedCount ? " · " + res.normalizedCount + " normalized" : "";
+  const skipNote = res.skipped ? " · " + res.skipped + " junk skipped" : "";
+  toast("Imported " + scanned.length + " file(s) · " + refs.length + " raw refs · " + res.added + " new · " + res.merged + " merged" + normNote + skipNote, "ok");
+}
+
+$("#importFilesBtn").addEventListener("click", () => $("#fileInput").click());
+$("#fileInput").addEventListener("change", e => {
+  const files = Array.from(e.target.files || []);
+  e.target.value = "";
+  processFiles(files.map(f => ({ file: f, path: f.webkitRelativePath || f.name })));
+});
+$("#importFolderBtn").addEventListener("click", () => $("#folderInput").click());
+(function initFolderInput(){
+  const fi = $("#folderInput");
+  fi.setAttribute("webkitdirectory", "");
+  fi.setAttribute("directory", "");
+  fi.addEventListener("change", e => {
+    const files = Array.from(e.target.files || []);
+    e.target.value = "";
+    const htmls = files.filter(f => HTML_EXT.test(f.name));
+    if(!htmls.length){ toast("No .html/.htm files inside that folder.", "warn"); return; }
+    processFiles(htmls.map(f => ({ file: f, path: f.webkitRelativePath || f.name })));
+  });
+})();
+
+function hasFiles(e){
+  const dt = e.dataTransfer;
+  if(!dt) return false;
+  if(dt.types && Array.prototype.indexOf.call(dt.types, "Files") !== -1) return true;
+  return false;
+}
+let dragDepth = 0;
+window.addEventListener("dragenter", e => { if(!hasFiles(e)) return; e.preventDefault(); dragDepth++; $("#dropOverlay").classList.add("on"); });
+window.addEventListener("dragover",  e => { if(!hasFiles(e)) return; e.preventDefault(); e.dataTransfer.dropEffect = "copy"; });
+window.addEventListener("dragleave", e => { if(!hasFiles(e)) return; dragDepth = Math.max(0, dragDepth - 1); if(dragDepth === 0) $("#dropOverlay").classList.remove("on"); });
+window.addEventListener("drop", async e => {
+  if(!hasFiles(e)) return;
+  e.preventDefault(); dragDepth = 0; $("#dropOverlay").classList.remove("on");
+  const items = e.dataTransfer.items;
+  const collected = [];
+  if(items && items.length && items[0].webkitGetAsEntry){
+    const entries = [];
+    for(let i = 0; i < items.length; i++){ const en = items[i].webkitGetAsEntry(); if(en) entries.push(en); }
+    for(let i = 0; i < entries.length; i++) await walkEntry(entries[i], "", collected);
+  }else{
+    Array.from(e.dataTransfer.files || []).forEach(f => {
+      if(HTML_EXT.test(f.name)) collected.push({ file: f, path: f.webkitRelativePath || f.name });
+    });
+  }
+  if(!collected.length){ toast("No .html/.htm files in the dropped items.", "warn"); return; }
+  processFiles(collected);
+});
+function walkEntry(entry, prefix, out){
+  return new Promise(resolve => {
+    if(entry.isFile){
+      if(HTML_EXT.test(entry.name)){
+        entry.file(file => { out.push({ file: file, path: prefix + entry.name }); resolve(); }, () => resolve());
+      }else resolve();
+      return;
+    }
+    if(entry.isDirectory){
+      const reader = entry.createReader();
+      const all = [];
+      const readBatch = () => {
+        reader.readEntries(async batch => {
+          if(!batch.length){
+            for(let i = 0; i < all.length; i++) await walkEntry(all[i], prefix + entry.name + "/", out);
+            resolve(); return;
+          }
+          for(let i = 0; i < batch.length; i++) all.push(batch[i]);
+          readBatch();
+        }, () => resolve());
+      };
+      readBatch(); return;
+    }
+    resolve();
+  });
+}
+
+/* ==================================================================
+   RENDERING
+   ================================================================== */
+function visibleLinks(){
+  const q = state.search.trim().toLowerCase();
+  let arr = state.links.slice();
+  if(state.activeCategory === "unassigned"){
+    arr = arr.filter(l => l.categoryId === "unassigned" || !l.categoryId);
+  }else if(state.activeCategory !== "all"){
+    arr = arr.filter(l => l.categoryId === state.activeCategory);
+  }
+  if(state.filterType !== "all") arr = arr.filter(l => l.type === state.filterType);
+  if(q){
+    arr = arr.filter(l =>
+      (l.label || "").toLowerCase().indexOf(q) !== -1 ||
+      (l.url || "").toLowerCase().indexOf(q) !== -1 ||
+      (l.urlOriginal || "").toLowerCase().indexOf(q) !== -1 ||
+      (l.sourceFile || "").toLowerCase().indexOf(q) !== -1 ||
+      (l.element || "").toLowerCase().indexOf(q) !== -1 ||
+      (l.attribute || "").toLowerCase().indexOf(q) !== -1 ||
+      (l.sectionHeading || "").toLowerCase().indexOf(q) !== -1 ||
+      (l.classes || []).join(" ").toLowerCase().indexOf(q) !== -1
+    );
+  }
+  arr.sort((a, b) => a.order - b.order);
+  return arr;
+}
+function renderStats(){
+  const total = state.links.length;
+  const unassigned = state.links.filter(l => l.categoryId === "unassigned").length;
+  const cats = state.categories.length + 1;
+  const norm = state.links.filter(l => l.normalized).length;
+  $("#stats").innerHTML =
+    '<span class="chip">📄 Files <b>' + state.files.length + '</b></span>' +
+    '<span class="chip">🔗 Unique <b>' + total + '</b></span>' +
+    '<span class="chip">🗂 Cats <b>' + cats + '</b></span>' +
+    '<span class="chip">📌 Unassigned <b>' + unassigned + '</b></span>' +
+    '<span class="chip">🧾 Refs <b>' + state.rawRefs + '</b></span>' +
+    (norm ? '<span class="chip">🔧 Norm <b>' + norm + '</b></span>' : '');
+}
+function renderSidebar(){
+  const list = $("#catList");
+  let html = "";
+  html += catRow("all", "All Links", "◉", state.links.length);
+  html += catRow("unassigned", "Unassigned", "○", countInCategory("unassigned"));
+  state.categories.forEach((c, idx) => {
+    const active = state.activeCategory === c.id ? " active" : "";
+    html += '<div class="cat' + active + '" data-cat="' + esc(c.id) + '" tabindex="0">' +
+      '<span class="swatch" style="background:hsl(' + ((idx * 67 + 210) % 360) + ',70%,60%)"></span>' +
+      '<span class="cat-name">' + esc(c.name) + '</span>' +
+      '<span class="count">' + countInCategory(c.id) + '</span>' +
+      '<span class="cat-actions">' +
+        '<button data-catact="rename" data-id="' + esc(c.id) + '" title="Rename">✎</button>' +
+        '<button data-catact="delete" data-id="' + esc(c.id) + '" title="Delete" class="danger">🗑</button>' +
+      '</span>' +
+    '</div>';
+  });
+  list.innerHTML = html;
+}
+function catRow(id, name, icon, count){
+  const active = state.activeCategory === id ? " active" : "";
+  return '<div class="cat' + active + '" data-cat="' + esc(id) + '" tabindex="0">' +
+    '<span class="swatch" style="background:var(--muted-2)"></span>' +
+    '<span class="cat-name">' + esc(icon + " " + name) + '</span>' +
+    '<span class="count">' + count + '</span>' +
+  '</div>';
+}
+function itemHtml(l){
+  const isSel = selected.has(l.id);
+  const occ = l.occurrences ? l.occurrences.length : 1;
+  const labelHtml = l.label
+    ? '<span class="lbl">' + esc(l.label) + '</span>'
+    : '<span class="lbl muted">(no label)</span>';
+  const normBadge = l.normalized
+    ? '<span class="tag norm" title="Original: ' + esc(l.urlOriginal) + '">🔧 normalized</span>'
+    : '';
+  const cls = (l.classes || []).slice(0, 2);
+  const clsBadge = cls.length
+    ? '<span class="tag class-tag" title="' + esc((l.classes || []).join(" ")) + '">.' + esc(cls.join(" .")) + (l.classes.length > 2 ? " +" + (l.classes.length - 2) : "") + '</span>'
+    : '';
+  const secBadge = l.sectionHeading
+    ? '<span class="tag section-tag" title="Section heading (H' + l.sectionLevel + '): ' + esc(l.sectionHeading) + '">📑 ' + esc(truncate(l.sectionHeading, 24)) + '</span>'
+    : '';
+
+  return '<div class="item' + (isSel ? " selected" : "") + '" data-id="' + esc(l.id) + '" draggable="true">' +
+    '<label class="chk"><input type="checkbox" data-act="select" ' + (isSel ? "checked" : "") + ' aria-label="Select link"></label>' +
+    '<div class="grip" title="Drag to move / reorder">⠿</div>' +
+    '<div class="body">' +
+      '<div class="r1">' + labelHtml +
+        '<span class="tag">' + esc(l.element) + ' · ' + esc(l.attribute) + '</span>' +
+        clsBadge + secBadge + normBadge +
+      '</div>' +
+      '<div class="r2" title="' + esc(l.url) + '">' + esc(l.url) +
+        (l.normalized ? '<span class="orig" title="Original URL">' + esc(truncate(l.urlOriginal, 60)) + '</span>' : '') +
+      '</div>' +
+      '<div class="r3">📄 ' + esc(l.sourceFile) +
+        '<span class="dot">•</span>src #' + (l.originalOrder + 1) +
+        '<span class="dot">•</span>ord #' + (l.order + 1) +
+        (occ > 1 ? '<span class="dot">•</span>found ×' + occ : '') +
+        '<span class="dot">•</span>' + esc(catName(l.categoryId)) +
+      '</div>' +
+    '</div>' +
+    '<div class="acts">' +
+      '<button data-act="edit" title="Edit">✎</button>' +
+      '<button data-act="copy" title="Copy URL">⧉</button>' +
+      '<button data-act="move" title="Move to category">➜</button>' +
+      '<button data-act="delete" title="Delete" class="danger">🗑</button>' +
+    '</div>' +
+  '</div>';
+}
+function truncate(s, n){ s = String(s || ""); return s.length > n ? s.slice(0, n - 1) + "…" : s; }
+
+function renderWorkspace(){
+  const arr = visibleLinks();
+  const title = state.activeCategory === "all" ? "All Links" : catName(state.activeCategory);
+  $("#wsTitle").innerHTML = esc(title) +
+    ' <span class="sub">' + arr.length + ' item' + (arr.length === 1 ? "" : "s") +
+    (state.search ? ' · filtered' : '') + '</span>';
+
+  const listEl = $("#list");
+  if(!state.links.length){
+    listEl.innerHTML =
+      '<div class="empty">' +
+        '<div class="big">🗂️</div>' +
+        '<h3>No links yet</h3>' +
+        '<p>Import one or more saved <b>.html</b> files, or a whole website folder, to extract every URL written in the source HTML. Everything stays on your device.</p>' +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:6px">' +
+          '<button class="primary" onclick="document.getElementById(\'importFilesBtn\').click()">📄 Import HTML</button>' +
+          '<button onclick="document.getElementById(\'importFolderBtn\').click()">📁 Import Folder</button>' +
+        '</div>' +
+      '</div>';
+    return;
+  }
+  if(!arr.length){
+    listEl.innerHTML =
+      '<div class="empty">' +
+        '<div class="big">🔍</div>' +
+        '<h3>No matching links</h3>' +
+        '<p>No items match the current search or filter. Your data is untouched — clear the search or choose another category.</p>' +
+        '<button onclick="clearFilters()">Clear search &amp; filters</button>' +
+      '</div>';
+    return;
+  }
+  const slice = arr.slice(0, renderLimit);
+  let html = "";
+  for(let i = 0; i < slice.length; i++) html += itemHtml(slice[i]);
+  if(arr.length > renderLimit){
+    html += '<div style="text-align:center;padding:14px"><button id="loadMoreBtn">Show ' +
+      Math.min(250, arr.length - renderLimit) + ' more of ' + (arr.length - renderLimit) + ' remaining</button></div>';
+  }
+  listEl.innerHTML = html;
+}
+
+function renderBulk(){
+  const count = selected.size;
+  const span = $("#bulkCount");
+  const moveBtn = $("#bulkMove"), delBtn = $("#bulkDelete"), clrBtn = $("#bulkClear");
+  if(count > 0){
+    span.classList.remove("hidden"); moveBtn.classList.remove("hidden");
+    delBtn.classList.remove("hidden"); clrBtn.classList.remove("hidden");
+    span.textContent = count + " selected";
+  }else{
+    span.classList.add("hidden"); moveBtn.classList.add("hidden");
+    delBtn.classList.add("hidden"); clrBtn.classList.add("hidden");
+  }
+  updateSelectAllButton();
+}
+function updateSelectAllButton(){
+  const btn = $("#selectAllBtn");
+  const arr = visibleLinks();
+  if(!arr.length){ btn.disabled = true; btn.textContent = "☑ Select all"; return; }
+  btn.disabled = false;
+  const allSel = arr.every(l => selected.has(l.id));
+  if(allSel && arr.length){
+    btn.textContent = "☐ Deselect all (" + arr.length + ")";
+  }else{
+    const selCount = arr.filter(l => selected.has(l.id)).length;
+    btn.textContent = "☑ Select all (" + arr.length + (selCount ? " · " + selCount + " on" : "") + ")";
+  }
+}
+function renderAll(){ renderStats(); renderSidebar(); renderWorkspace(); renderBulk(); }
+
+window.clearFilters = function(){
+  state.search = ""; state.filterType = "all"; state.activeCategory = "all";
+  $("#searchInput").value = ""; $("#typeFilter").value = "all";
+  renderAll();
+};
+
+/* ==================================================================
+   SELECT ALL / CLICK AWAY
+   ================================================================== */
+$("#selectAllBtn").addEventListener("click", () => {
+  const arr = visibleLinks();
+  if(!arr.length) return;
+  const allSel = arr.every(l => selected.has(l.id));
+  if(allSel){
+    arr.forEach(l => selected.delete(l.id));
+    toast("Deselected " + arr.length + " item(s)", "ok");
+  }else{
+    arr.forEach(l => selected.add(l.id));
+    toast("Selected " + arr.length + " item(s)", "ok");
+  }
+  renderWorkspace(); renderBulk();
+});
+$("#list").addEventListener("mousedown", e => {
+  if(!selected.size) return;
+  if(e.target.closest(".item")) return;
+  if(e.target.closest("button")) return;
+  if(e.target.closest("input")) return;
+  if(e.target.closest("a")) return;
+  selected.clear();
+  renderWorkspace(); renderBulk();
+});
+
+/* ==================================================================
+   SIDEBAR INTERACTION
+   ================================================================== */
+$("#catList").addEventListener("click", e => {
+  const actBtn = e.target.closest("[data-catact]");
+  if(actBtn){
+    e.stopPropagation();
+    const id = actBtn.dataset.id;
+    if(actBtn.dataset.catact === "rename") openCatModal(id);
+    else deleteCategory(id);
+    return;
+  }
+  const row = e.target.closest(".cat");
+  if(!row) return;
+  state.activeCategory = row.dataset.cat;
+  renderLimit = 250; save(); renderAll();
+});
+$("#catList").addEventListener("keydown", e => {
+  if(e.key === "Enter" || e.key === " "){
+    const row = e.target.closest(".cat");
+    if(row){ e.preventDefault(); state.activeCategory = row.dataset.cat; renderLimit = 250; save(); renderAll(); }
+  }
+});
+$("#catList").addEventListener("dragover", e => {
+  if(!dragId) return;
+  const row = e.target.closest(".cat");
+  if(!row) return;
+  e.preventDefault(); e.dataTransfer.dropEffect = "move";
+  $$(".cat").forEach(c => c.classList.remove("drop-hover"));
+  row.classList.add("drop-hover");
+});
+$("#catList").addEventListener("dragleave", e => {
+  const row = e.target.closest(".cat");
+  if(row) row.classList.remove("drop-hover");
+});
+$("#catList").addEventListener("drop", e => {
+  const row = e.target.closest(".cat");
+  if(!row || !dragId) return;
+  e.preventDefault(); e.stopPropagation();
+  $$(".cat").forEach(c => c.classList.remove("drop-hover"));
+  moveLinksToCategory([dragId], row.dataset.cat);
+  dragId = null;
+});
+
+/* ==================================================================
+   LIST INTERACTION
+   ================================================================== */
+$("#list").addEventListener("click", e => {
+  const btn = e.target.closest("[data-act]");
+  const item = e.target.closest(".item");
+  if(!item) return;
+  const id = item.dataset.id;
+  if(!btn) return;
+  const act = btn.dataset.act;
+  if(act === "select"){
+    if(btn.checked) selected.add(id); else selected.delete(id);
+    item.classList.toggle("selected", btn.checked);
+    renderBulk();
+    return;
+  }
+  if(act === "edit")   return openEditModal(id);
+  if(act === "copy")   return copyUrl(id);
+  if(act === "move")   return openMoveModal([id]);
+  if(act === "delete") return deleteLink(id);
+});
+$("#list").addEventListener("dragstart", e => {
+  const item = e.target.closest(".item");
+  if(!item) return;
+  dragId = item.dataset.id;
+  try{ e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", dragId); }catch(err){}
+  item.classList.add("dragging");
+});
+$("#list").addEventListener("dragend", () => {
+  dragId = null;
+  $$(".item").forEach(i => i.classList.remove("dragging", "drop-before", "drop-after"));
+  $$(".cat").forEach(c => c.classList.remove("drop-hover"));
+});
+$("#list").addEventListener("dragover", e => {
+  if(!dragId) return;
+  const item = e.target.closest(".item");
+  if(!item || item.dataset.id === dragId) return;
+  e.preventDefault(); e.dataTransfer.dropEffect = "move";
+  const r = item.getBoundingClientRect();
+  const after = (e.clientY - r.top) > r.height / 2;
+  $$(".item").forEach(i => i.classList.remove("drop-before", "drop-after"));
+  item.classList.add(after ? "drop-after" : "drop-before");
+});
+$("#list").addEventListener("drop", e => {
+  const item = e.target.closest(".item");
+  if(!item || !dragId) return;
+  e.preventDefault();
+  const after = item.classList.contains("drop-after");
+  const src = dragId; dragId = null;
+  reorderLink(src, item.dataset.id, after);
+});
+$("#list").addEventListener("click", e => {
+  if(e.target && e.target.id === "loadMoreBtn"){ renderLimit += 250; renderWorkspace(); }
+});
+
+/* ==================================================================
+   LINK OPERATIONS
+   ================================================================== */
+function findLink(id){ return state.links.find(l => l.id === id); }
+function reorderLink(srcId, tgtId, after){
+  if(srcId === tgtId) return;
+  const all = state.links.slice().sort((a, b) => a.order - b.order);
+  const si = all.findIndex(l => l.id === srcId);
+  if(si < 0) return;
+  const moved = all.splice(si, 1)[0];
+  let ti = all.findIndex(l => l.id === tgtId);
+  if(ti < 0){ all.splice(si, 0, moved); return; }
+  if(after) ti++;
+  all.splice(ti, 0, moved);
+  all.forEach((l, i) => { l.order = i; });
+  save(); renderWorkspace();
+  toast("Order updated", "ok");
+}
+function moveLinksToCategory(ids, catId){
+  let n = 0;
+  ids.forEach(id => { const l = findLink(id); if(l && l.categoryId !== catId){ l.categoryId = catId; n++; } });
+  if(n){ save(); renderAll(); toast(n + " item(s) moved to “" + catName(catId) + "”", "ok"); }
+}
+async function deleteLink(id){
+  const l = findLink(id);
+  if(!l) return;
+  const ok = await confirmDialog("Delete link?", "Delete “" + (l.label || l.url) + "” from the workspace? This cannot be undone.", "Delete");
+  if(!ok) return;
+  state.links = state.links.filter(x => x.id !== id);
+  selected.delete(id); renumber(); save(); renderAll();
+  toast("Link deleted", "ok");
+}
+function renumber(){
+  state.links.slice().sort((a, b) => a.order - b.order).forEach((l, i) => { l.order = i; });
+}
+function copyUrl(id){
+  const l = findLink(id); if(!l) return;
+  copyText(l.url).then(() => toast("URL copied", "ok")).catch(() => toast("Copy failed", "err"));
+}
+function copyText(text){
+  if(navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(text);
+  return new Promise((resolve, reject) => {
+    try{
+      const ta = document.createElement("textarea");
+      ta.value = text; ta.style.position = "fixed"; ta.style.left = "-9999px";
+      document.body.appendChild(ta); ta.select();
+      document.execCommand("copy"); ta.remove();
+      resolve();
+    }catch(err){ reject(err); }
+  });
+}
+
+/* ==================================================================
+   EDIT MODAL
+   ================================================================== */
+function fillCategorySelect(sel, current){
+  let html = '<option value="unassigned">Unassigned</option>';
+  state.categories.forEach(c => { html += '<option value="' + esc(c.id) + '">' + esc(c.name) + '</option>'; });
+  sel.innerHTML = html;
+  sel.value = current || "unassigned";
+  if(sel.selectedIndex < 0) sel.value = "unassigned";
+}
+function openEditModal(id){
+  const l = findLink(id); if(!l) return;
+  editingId = id;
+  $("#editMeta").innerHTML =
+    metaCell("Source file", l.sourceFile) +
+    metaCell("Element", "<" + l.element + ">") +
+    metaCell("Attribute", l.attribute) +
+    metaCell("Context", l.context) +
+    metaCell("Section heading", l.sectionHeading ? "H" + l.sectionLevel + " “" + l.sectionHeading + "”" : "—") +
+    metaCell("Classes", (l.classes || []).join(" ") || "—") +
+    metaCell("Parent", l.parentPath || "—") +
+    metaCell("Original source order", "#" + (l.originalOrder + 1)) +
+    metaCell("Found", (l.occurrences ? l.occurrences.length : 1) + "×");
+  $("#editLabel").value = l.label || "";
+  $("#editUrl").value = l.url;
+  const orig = l.urlOriginal || l.url;
+  if(orig && orig !== l.url){
+    $("#editOrigField").style.display = "";
+    $("#editOrigUrl").value = orig;
+  }else{
+    $("#editOrigField").style.display = "none";
+    $("#editOrigUrl").value = "";
+  }
+  fillCategorySelect($("#editCat"), l.categoryId);
+  openModal("editModal");
+  setTimeout(() => $("#editLabel").focus(), 60);
+}
+function metaCell(k, v){ return '<div><span>' + esc(k) + '</span><b>' + esc(v) + '</b></div>'; }
+
+$("#editCancel").addEventListener("click", () => closeModal("editModal"));
+$("#editCopy").addEventListener("click", () => { copyText($("#editUrl").value).then(() => toast("URL copied", "ok")); });
+$("#editRevert").addEventListener("click", () => { const l = findLink(editingId); if(l) $("#editUrl").value = l.urlOriginal || l.url; });
+$("#editSave").addEventListener("click", () => {
+  const l = findLink(editingId); if(!l) return;
+  const newUrl = $("#editUrl").value.trim();
+  if(!newUrl){ toast("URL cannot be empty.", "warn"); return; }
+  l.label = $("#editLabel").value.trim();
+  l.url = newUrl;
+  l.categoryId = $("#editCat").value;
+  l.context = contextOf(l.element, l.type);
+  l.edited = true;
+  l.normalized = (l.urlOriginal && l.urlOriginal !== l.url);
+  closeModal("editModal"); save(); renderAll();
+  toast("Link updated", "ok");
+});
+
+/* ==================================================================
+   MOVE MODAL
+   ================================================================== */
+function openMoveModal(ids){
+  moveTargets = ids.slice();
+  $("#moveTitle").textContent = ids.length > 1 ? "Move " + ids.length + " items" : "Move to category";
+  $("#moveHint").textContent = ids.length > 1 ? "Choose the destination category for the selected items."
+    : "Choose the destination category for “" + (findLink(ids[0]) ? (findLink(ids[0]).label || findLink(ids[0]).url) : "") + "”.";
+  const cur = ids.length === 1 && findLink(ids[0]) ? findLink(ids[0]).categoryId : "";
+  let html = radioRow("unassigned", "Unassigned", cur);
+  state.categories.forEach(c => { html += radioRow(c.id, c.name, cur); });
+  $("#moveList").innerHTML = html;
+  openModal("moveModal");
+}
+function radioRow(id, name, cur){
+  return '<label><input type="radio" name="movecat" value="' + esc(id) + '"' + (cur === id ? " checked" : "") + '> <span>' + esc(name) + '</span></label>';
+}
+$("#moveCancel").addEventListener("click", () => closeModal("moveModal"));
+$("#moveOk").addEventListener("click", () => {
+  const sel = $('input[name="movecat"]:checked');
+  if(!sel){ toast("Choose a category first.", "warn"); return; }
+  moveLinksToCategory(moveTargets, sel.value);
+  closeModal("moveModal"); moveTargets = [];
+});
+
+/* ==================================================================
+   BULK
+   ================================================================== */
+$("#bulkMove").addEventListener("click", () => { if(selected.size) openMoveModal(Array.from(selected)); });
+$("#bulkDelete").addEventListener("click", async () => {
+  if(!selected.size) return;
+  const ok = await confirmDialog("Delete " + selected.size + " link(s)?", "This removes the selected links from the workspace permanently.", "Delete");
+  if(!ok) return;
+  state.links = state.links.filter(l => !selected.has(l.id));
+  selected.clear(); renumber(); save(); renderAll();
+  toast("Selected links deleted", "ok");
+});
+$("#bulkClear").addEventListener("click", () => { selected.clear(); renderWorkspace(); renderBulk(); });
+
+/* ==================================================================
+   PER-CATEGORY EXPORT MODAL
+   ================================================================== */
+function buildCategoryLinkString(catId){
+  let arr;
+  if(catId === "all"){
+    arr = state.links.slice();
+  }else if(catId === "unassigned"){
+    arr = state.links.filter(l => l.categoryId === "unassigned" || !l.categoryId);
+  }else{
+    arr = state.links.filter(l => l.categoryId === catId);
+  }
+  arr.sort((a, b) => a.order - b.order);
+  return arr.map(l => l.url).join("; ");
+}
+
+function sanitizeFilename(name){
+  let s = String(name == null ? "" : name)
+    .replace(/[\\/:*?"<>|\x00-\x1F]/g, "_")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 80);
+  if(!s) s = "category";
+  return s;
+}
+
+function openCatExportModal(){
+  if(!state.links.length){
+    toast("Nothing to export yet — import some HTML first.", "warn");
+    return;
+  }
+  const cats = categoryOrder();
+  const nonEmpty = cats.filter(c => countInCategory(c.id) > 0);
+
+  const list = $("#catExportList");
+  if(!nonEmpty.length){
+    list.innerHTML = '<div class="ce-empty">No links in any category yet.</div>';
+    $("#ceSummary").textContent = "";
+  }else{
+    let html = "";
+    nonEmpty.forEach(c => {
+      const str = buildCategoryLinkString(c.id);
+      const cnt = countInCategory(c.id);
+      html += '<div class="ce-row" data-cat="' + esc(c.id) + '">' +
+        '<div class="ce-head">' +
+          '<span class="ce-name">' + esc(c.name) + '</span>' +
+          '<span class="ce-count">' + cnt + ' link' + (cnt === 1 ? "" : "s") + '</span>' +
+          '<div class="ce-actions">' +
+            '<button data-ceact="copy" data-cat="' + esc(c.id) + '" class="ghost" title="Copy to clipboard">⧉ Copy</button>' +
+            '<button data-ceact="save" data-cat="' + esc(c.id) + '" class="primary" title="Save as .txt">💾 Save .txt</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="ce-preview">' + (str ? esc(str) : '<span class="empty-note">(empty)</span>') + '</div>' +
+      '</div>';
+    });
+    list.innerHTML = html;
+    const totalLinks = nonEmpty.reduce((n, c) => n + countInCategory(c.id), 0);
+    $("#ceSummary").textContent = nonEmpty.length + " categor" + (nonEmpty.length === 1 ? "y" : "ies") +
+      " · " + totalLinks + " link" + (totalLinks === 1 ? "" : "s") + " total";
+  }
+  openModal("catExportModal");
+}
+
+$("#catExportBtn").addEventListener("click", openCatExportModal);
+$("#ceClose").addEventListener("click", () => closeModal("catExportModal"));
+
+$("#catExportList").addEventListener("click", e => {
+  const btn = e.target.closest("[data-ceact]");
+  if(!btn) return;
+  const catId = btn.dataset.cat;
+  const cat = catId === "unassigned"
+    ? { id: "unassigned", name: "Unassigned" }
+    : state.categories.find(c => c.id === catId);
+  if(!cat){ toast("Category not found", "err"); return; }
+
+  const str = buildCategoryLinkString(catId);
+
+  if(btn.dataset.ceact === "copy"){
+    copyText(str)
+      .then(() => toast("Copied “" + cat.name + "” (" + countInCategory(catId) + " link)" + (countInCategory(catId) === 1 ? "" : "s"), "ok"))
+      .catch(() => toast("Copy failed", "err"));
+    return;
+  }
+  if(btn.dataset.ceact === "save"){
+    const fname = sanitizeFilename(cat.name) + ".txt";
+    downloadText(str, fname);
+    toast("Saved " + fname, "ok");
+  }
+});
+
+$("#ceCopyAll").addEventListener("click", () => {
+  const cats = categoryOrder().filter(c => countInCategory(c.id) > 0);
+  if(!cats.length){ toast("No categories with links", "warn"); return; }
+  const all = cats.map(c => buildCategoryLinkString(c.id)).filter(Boolean).join("; ");
+  copyText(all)
+    .then(() => toast("Copied all categories (flat, ; separated)", "ok"))
+    .catch(() => toast("Copy failed", "err"));
+});
+
+$("#ceSaveAll").addEventListener("click", () => {
+  const cats = categoryOrder().filter(c => countInCategory(c.id) > 0);
+  if(!cats.length){ toast("No categories with links", "warn"); return; }
+  let i = 0;
+  const next = () => {
+    if(i >= cats.length){
+      toast("Saved " + cats.length + " .txt file" + (cats.length === 1 ? "" : "s"), "ok");
+      return;
+    }
+    const c = cats[i++];
+    const str = buildCategoryLinkString(c.id);
+    const fname = sanitizeFilename(c.name) + ".txt";
+    downloadText(str, fname);
+    setTimeout(next, 280);
+  };
+  next();
+});
+
+/* ==================================================================
+   SMART AUTO-CATEGORIZE
+   ================================================================== */
+const NOISE_CLASSES = new Set([
+  "active","open","closed","show","hidden","first","last","even","odd","disabled","selected",
+  "col","row","container","fluid","item","card","link","btn","nav","menu","list","section",
+  "wrapper","inner","outer","clearfix","hide","in","up","down","left","right","current"
+]);
+const UTILITY_PATTERN = /^(col|row|mt|mb|ml|mr|pt|pb|pl|pr|px|py|mx|my|m|p|w|h|min|max|text|bg|d|flex|order|offset|gap|justify|align|border|rounded|shadow|opacity|z|top|bottom|start|end|grid|gap|space|track|leading|font|leading)-?\d*$/i;
+
+function isNoiseClass(c){
+  if(!c) return true;
+  if(c.length <= 1) return true;
+  if(c.length > 60) return true;
+  const low = c.toLowerCase();
+  if(NOISE_CLASSES.has(low)) return true;
+  if(UTILITY_PATTERN.test(low)) return true;
+  if(/^\d+$/.test(c)) return true;
+  if(/^(bg|text|border|fill|stroke)-[a-z0-9-]+$/.test(low) && low.length < 10) return true;
+  return false;
+}
+
+function niceName(kind, value){
+  let s = String(value || "").trim();
+  if(kind === "domain"){ s = s.replace(/^www\./, ""); }
+  if(kind === "class"){ s = s.replace(/^\./, ""); }
+  if(kind === "attr"){
+    const eq = s.indexOf("=");
+    if(eq !== -1){
+      const key = s.slice(0, eq);
+      const val = s.slice(eq + 1);
+      s = val || key;
+    }
+  }
+  s = s.replace(/[-_]+/g, " ").trim();
+  if(!s) return "Group";
+  if(s === s.toLowerCase()){
+    s = s.replace(/\b([a-z])/g, (m, c) => c.toUpperCase());
+  }
+  return s.slice(0, 48);
+}
+
+function analyzeGroups(){
+  const groups = [];
+  const min = 2;
+  const seen = new Set();
+
+  const sectionMap = new Map();
+  state.links.forEach(l => {
+    const h = (l.sectionHeading || "").trim();
+    if(!h) return;
+    const key = "H" + l.sectionLevel + "::" + h;
+    if(!sectionMap.has(key)) sectionMap.set(key, { heading: h, level: l.sectionLevel, ids: [] });
+    sectionMap.get(key).ids.push(l.id);
+  });
+  sectionMap.forEach((data, key) => {
+    if(data.ids.length < min) return;
+    if(seen.has("section::" + key)) return;
+    seen.add("section::" + key);
+    groups.push({
+      key: "section::" + key, kind: "section", value: data.heading, icon: "📑",
+      label: "section “" + data.heading + "” (H" + data.level + ")", ids: data.ids
+    });
+  });
+
+  const classMap = new Map();
+  state.links.forEach(l => {
+    (l.classes || []).forEach(c => {
+      if(isNoiseClass(c)) return;
+      if(!classMap.has(c)) classMap.set(c, []);
+      classMap.get(c).push(l.id);
+    });
+  });
+  classMap.forEach((ids, name) => {
+    if(ids.length < min) return;
+    const key = "class::" + name;
+    if(seen.has(key)) return; seen.add(key);
+    groups.push({ key, kind:"class", value:name, icon:"🏷️", label:"class “" + name + "”", ids });
+  });
+
+  const parentMap = new Map();
+  state.links.forEach(l => {
+    const p = l.parentPath || "";
+    if(!p) return;
+    if(!parentMap.has(p)) parentMap.set(p, []);
+    parentMap.get(p).push(l.id);
+  });
+  parentMap.forEach((ids, path) => {
+    if(ids.length < min) return;
+    const key = "parent::" + path;
+    if(seen.has(key)) return; seen.add(key);
+    groups.push({ key, kind:"parent", value:path, icon:"📁", label:"parent “" + path + "”", ids });
+  });
+
+  const dataMap = new Map();
+  state.links.forEach(l => {
+    const da = l.dataAttrs || {};
+    Object.keys(da).forEach(k => {
+      const v = String(da[k] || "").slice(0, 40);
+      if(!v) return;
+      const compound = k + "=" + v;
+      if(!dataMap.has(compound)) dataMap.set(compound, []);
+      dataMap.get(compound).push(l.id);
+    });
+  });
+  dataMap.forEach((ids, key) => {
+    if(ids.length < min) return;
+    const gk = "attr::" + key;
+    if(seen.has(gk)) return; seen.add(gk);
+    groups.push({ key: gk, kind:"attr", value:key, icon:"⚙️", label:"attribute “" + key + "”", ids });
+  });
+
+  const domMap = new Map();
+  state.links.forEach(l => {
+    try{
+      const u = new URL(l.url);
+      const d = u.hostname.replace(/^www\./,"");
+      if(!d) return;
+      if(!domMap.has(d)) domMap.set(d, []);
+      domMap.get(d).push(l.id);
+    }catch(e){}
+  });
+  domMap.forEach((ids, d) => {
+    if(ids.length < min) return;
+    const key = "domain::" + d;
+    if(seen.has(key)) return; seen.add(key);
+    groups.push({ key, kind:"domain", value:d, icon:"🌐", label:"domain “" + d + "”", ids });
+  });
+
+  groups.sort((a, b) => b.ids.length - a.ids.length);
+  return groups.slice(0, 100);
+}
+
+function openSmartModal(){
+  if(!state.links.length){ toast("Nothing to analyze yet — import some HTML first.", "warn"); return; }
+  smartGroups = analyzeGroups();
+  smartChecked = new Set();
+  smartExpanded = new Set();
+  smartFilter = "all";
+  $$(".smart-toolbar .pill").forEach(p => p.classList.toggle("on", p.dataset.filter === "all"));
+  $("#smartCheckAll").checked = false;
+  renderSmartList();
+  openModal("smartModal");
+}
+
+function buildSmartDetails(g){
+  const total = g.ids.length;
+  const shown = g.ids.slice(0, SMART_DETAIL_MAX);
+  let html = "";
+  shown.forEach(id => {
+    const l = findLink(id);
+    if(!l) return;
+    const labelHtml = l.label
+      ? '<span class="sd-label">' + esc(l.label) + '</span>'
+      : '<span class="sd-label muted">(no label)</span>';
+    const tagBadge = '<span class="sd-tag">' + esc(l.element) + ' · ' + esc(l.attribute) + '</span>';
+    const catBadge = l.categoryId && l.categoryId !== "unassigned"
+      ? '<span class="sd-tag cat">' + esc(catName(l.categoryId)) + '</span>' : '';
+    const secBadge = (g.kind !== "section" && l.sectionHeading)
+      ? '<span class="sd-tag">📑 ' + esc(truncate(l.sectionHeading, 20)) + '</span>' : '';
+    html += '<div class="sd-link">' +
+      '<div class="sd-row">' + labelHtml + tagBadge + secBadge + catBadge + '</div>' +
+      '<div class="sd-url">' + esc(l.url) + '</div>' +
+      (l.normalized ? '<div class="sd-meta">original: ' + esc(truncate(l.urlOriginal, 90)) + '</div>' : '') +
+    '</div>';
+  });
+  if(total > SMART_DETAIL_MAX){
+    html += '<div class="sd-more">… and ' + (total - SMART_DETAIL_MAX) + ' more link(s) not shown</div>';
+  }
+  return html;
+}
+
+function renderSmartList(){
+  const list = $("#smartList");
+  const filtered = smartFilter === "all"
+    ? smartGroups : smartGroups.filter(g => g.kind === smartFilter);
+
+  if(!filtered.length){
+    list.innerHTML = '<div class="smart-empty">No groups of this kind detected. Try importing pages with shared CSS classes, heading sections, or data-* attributes.</div>';
+    $("#smartSummary").innerHTML = "";
+    return;
+  }
+
+  let html = "";
+  filtered.forEach(g => {
+    const checked = smartChecked.has(g.key);
+    const expanded = smartExpanded.has(g.key);
+    const preview = g.ids.slice(0, 2).map(id => {
+      const l = findLink(id);
+      if(!l) return "";
+      return l.label ? ('"' + l.label + '"') : l.url;
+    }).filter(Boolean).join(" · ");
+
+    html += '<div class="smart-group" data-gkey="' + esc(g.key) + '">' +
+      '<div class="smart-row' + (checked ? " checked" : "") + '" data-key="' + esc(g.key) + '">' +
+        '<span class="sr-caret" title="' + (expanded ? "Collapse" : "Expand") + '">' + (expanded ? "▾" : "▸") + '</span>' +
+        '<input type="checkbox" data-chk="' + esc(g.key) + '" ' + (checked ? "checked" : "") + ' aria-label="Select group">' +
+        '<span class="sr-ico">' + g.icon + '</span>' +
+        '<div class="sr-body">' +
+          '<div class="sr-name">' + esc(g.label) + '</div>' +
+          (preview ? '<div class="sr-meta">' + esc(preview) + '</div>' : '') +
+        '</div>' +
+        '<span class="sr-count">' + g.ids.length + ' link' + (g.ids.length === 1 ? "" : "s") + '</span>' +
+      '</div>';
+    if(expanded){
+      html += '<div class="smart-details">' + buildSmartDetails(g) + '</div>';
+    }
+    html += '</div>';
+  });
+  list.innerHTML = html;
+
+  const totalChecked = smartChecked.size;
+  const totalLinksIfAll = Array.from(smartChecked).reduce((n, key) => {
+    const g = smartGroups.find(x => x.key === key);
+    return n + (g ? g.ids.length : 0);
+  }, 0);
+  $("#smartSummary").innerHTML = smartGroups.length + " group(s) detected · " +
+    (totalChecked ? '<b>' + totalChecked + '</b> selected (' + totalLinksIfAll + ' link references)' :
+      'click a row to inspect its links, check the groups you want as categories');
+}
+
+$("#smartBtn").addEventListener("click", openSmartModal);
+$("#smartCancel").addEventListener("click", () => closeModal("smartModal"));
+
+$("#smartExpandAll").addEventListener("click", () => {
+  const filtered = smartFilter === "all" ? smartGroups : smartGroups.filter(g => g.kind === smartFilter);
+  filtered.forEach(g => smartExpanded.add(g.key));
+  renderSmartList();
+});
+$("#smartCollapseAll").addEventListener("click", () => {
+  smartExpanded.clear();
+  renderSmartList();
+});
+
+$("#smartModal").addEventListener("click", e => {
+  const pill = e.target.closest(".smart-toolbar .pill");
+  if(pill){
+    smartFilter = pill.dataset.filter;
+    $$(".smart-toolbar .pill").forEach(p => p.classList.toggle("on", p === pill));
+    renderSmartList();
+    return;
+  }
+  if(e.target.closest(".smart-details")) return;
+
+  const chk = e.target.closest("input[type=checkbox][data-chk]");
+  if(chk){
+    const key = chk.dataset.chk;
+    if(smartChecked.has(key)) smartChecked.delete(key);
+    else smartChecked.add(key);
+    renderSmartList();
+    return;
+  }
+  const row = e.target.closest(".smart-row");
+  if(row){
+    const key = row.dataset.key;
+    if(smartExpanded.has(key)) smartExpanded.delete(key);
+    else smartExpanded.add(key);
+    renderSmartList();
+    return;
+  }
+});
+
+$("#smartCheckAll").addEventListener("change", e => {
+  const on = e.target.checked;
+  const filtered = smartFilter === "all" ? smartGroups : smartGroups.filter(g => g.kind === smartFilter);
+  if(on){ filtered.forEach(g => smartChecked.add(g.key)); }
+  else  { filtered.forEach(g => smartChecked.delete(g.key)); }
+  renderSmartList();
+});
+
+$("#smartApply").addEventListener("click", async () => {
+  if(!smartChecked.size){ toast("Check at least one group first.", "warn"); return; }
+  const onlyUnassigned = $("#smartOnlyUnassigned").checked;
+  const selectedGroups = smartGroups.filter(g => smartChecked.has(g.key));
+
+  const ok = await confirmDialog(
+    "Apply auto-categorization?",
+    "Create " + selectedGroups.length + " categor" + (selectedGroups.length === 1 ? "y" : "ies") +
+    " and assign " + (onlyUnassigned ? "Unassigned links only" : "all matching links (will overwrite their current category)") +
+    ". Each link can only go to one category; the smallest/most specific group wins when a link matches multiple groups.",
+    "Create & assign", false
+  );
+  if(!ok) return;
+
+  const sorted = selectedGroups.slice().sort((a, b) => {
+    if(a.kind === "section" && b.kind !== "section") return -1;
+    if(b.kind === "section" && a.kind !== "section") return 1;
+    return a.ids.length - b.ids.length;
+  });
+  const assigned = new Set();
+  let catsCreated = 0, linksMoved = 0;
+
+  sorted.forEach(g => {
+    const name = uniqueCatName(niceName(g.kind, g.value));
+    const cat = { id: "C" + (state.nextCatId++), name };
+    state.categories.push(cat);
+    catsCreated++;
+    g.ids.forEach(id => {
+      if(assigned.has(id)) return;
+      const l = findLink(id);
+      if(!l) return;
+      if(onlyUnassigned && l.categoryId !== "unassigned"){ assigned.add(id); return; }
+      l.categoryId = cat.id;
+      assigned.add(id); linksMoved++;
+    });
+  });
+
+  save(); renderAll(); closeModal("smartModal");
+  toast("Created " + catsCreated + " categories · " + linksMoved + " link(s) assigned", "ok");
+});
+
+/* ==================================================================
+   NORMALIZE MODAL
+   ================================================================== */
+function syncNormUI(){
+  $("#normWww").checked = !!state.norm.prefixWww;
+  $("#normDecode").checked = !!state.norm.decode;
+  $("#normTracking").checked = !!state.norm.stripTracking;
+  $("#normRedirect").checked = !!state.norm.extractRedirect;
+  ["#optWww","#optDecode","#optTracking","#optRedirect"].forEach((sel, i) => {
+    const on = [state.norm.prefixWww, state.norm.decode, state.norm.stripTracking, state.norm.extractRedirect][i];
+    $(sel).classList.toggle("checked", on);
+  });
+  renderNormPreview();
+}
+function readNormUI(){
+  return {
+    prefixWww: $("#normWww").checked,
+    decode: $("#normDecode").checked,
+    stripTracking: $("#normTracking").checked,
+    extractRedirect: $("#normRedirect").checked
+  };
+}
+function renderNormPreview(){
+  const opts = readNormUI();
+  const box = $("#normPreview");
+  let sample = null;
+  for(let i = 0; i < state.links.length; i++){
+    const l = state.links[i];
+    const orig = l.urlOriginal || l.url;
+    const next = normalizeUrl(orig, opts);
+    if(next !== orig){ sample = { orig, next }; break; }
+  }
+  if(!sample && state.links.length){
+    const l = state.links[0];
+    const orig = l.urlOriginal || l.url;
+    sample = { orig, next: normalizeUrl(orig, opts) };
+  }
+  if(!sample){
+    box.innerHTML = '<span class="k">Preview:</span> <i style="color:var(--muted-2)">no links yet — settings will apply to future imports</i>';
+    return;
+  }
+  const changed = sample.orig !== sample.next;
+  box.innerHTML = '<span class="k">Preview (sample link):</span><br>' +
+    '<span class="old">' + esc(sample.orig) + '</span><br>' +
+    (changed ? '<span class="k">→</span> <span class="new">' + esc(sample.next) + '</span>'
+             : '<span class="k">→ (unchanged with current options)</span>');
+}
+$("#normBtn").addEventListener("click", () => { syncNormUI(); openModal("normModal"); });
+$("#normCancel").addEventListener("click", () => closeModal("normModal"));
+["normWww","normDecode","normTracking","normRedirect"].forEach(id => {
+  $("#" + id).addEventListener("change", () => {
+    const opts = readNormUI();
+    ["#optWww","#optDecode","#optTracking","#optRedirect"].forEach((sel, i) => {
+      const on = [opts.prefixWww, opts.decode, opts.stripTracking, opts.extractRedirect][i];
+      $(sel).classList.toggle("checked", on);
+    });
+    renderNormPreview();
+  });
+});
+$("#normSaveOnly").addEventListener("click", () => {
+  state.norm = readNormUI(); save(); closeModal("normModal");
+  toast("Normalization settings saved for future imports", "ok");
+});
+$("#normApplyAll").addEventListener("click", async () => {
+  state.norm = readNormUI();
+  const total = state.links.length;
+  if(!total){ save(); closeModal("normModal"); toast("Settings saved (no existing links)", "ok"); return; }
+  const ok = await confirmDialog(
+    "Apply normalization to all links?",
+    "Re-normalize all " + total + " existing link(s) from their original HTML value. Manually edited URLs will be reset to the normalization result of the original.",
+    "Apply to all", false
+  );
+  if(!ok) return;
+  let changed = 0, nowNormalized = 0;
+  state.links.forEach(l => {
+    const orig = l.urlOriginal || l.url;
+    if(!l.urlOriginal) l.urlOriginal = l.url;
+    const next = normalizeUrl(orig);
+    if(next !== l.url) changed++;
+    l.url = next;
+    l.normalized = (next !== orig);
+    if(l.normalized) nowNormalized++;
+  });
+  save(); renderAll(); closeModal("normModal");
+  toast("Normalized " + changed + " link(s) · " + nowNormalized + " flagged", "ok");
+});
+
+/* ==================================================================
+   CATEGORY CRUD
+   ================================================================== */
+$("#addCatBtn").addEventListener("click", () => openCatModal(null));
+function openCatModal(id){
+  editingCatId = id;
+  if(id){
+    const c = state.categories.find(x => x.id === id);
+    $("#catTitle").textContent = "Rename category";
+    $("#catName").value = c ? c.name : "";
+  }else{
+    $("#catTitle").textContent = "New category";
+    $("#catName").value = "";
+  }
+  openModal("catModal");
+  setTimeout(() => $("#catName").focus(), 60);
+}
+$("#catCancel").addEventListener("click", () => closeModal("catModal"));
+$("#catSave").addEventListener("click", () => {
+  const name = $("#catName").value.trim();
+  if(!name){ toast("Category name cannot be empty.", "warn"); return; }
+  if(catExistsByName(name, editingCatId)){ toast("That category name already exists.", "warn"); return; }
+  if(editingCatId){
+    const c = state.categories.find(x => x.id === editingCatId);
+    if(c){ c.name = name; toast("Category renamed", "ok"); }
+  }else{
+    state.categories.push({ id: "C" + (state.nextCatId++), name });
+    toast("Category created", "ok");
+  }
+  closeModal("catModal"); save(); renderAll();
+});
+$("#catName").addEventListener("keydown", e => { if(e.key === "Enter") $("#catSave").click(); });
+
+async function deleteCategory(id){
+  const c = state.categories.find(x => x.id === id);
+  if(!c) return;
+  const n = countInCategory(id);
+  const ok = await confirmDialog("Delete category?",
+    "Delete “" + c.name + "”? " + (n ? n + " link(s) inside will move back to Unassigned." : "It is currently empty."),
+    "Delete");
+  if(!ok) return;
+  state.links.forEach(l => { if(l.categoryId === id) l.categoryId = "unassigned"; });
+  state.categories = state.categories.filter(x => x.id !== id);
+  if(state.activeCategory === id) state.activeCategory = "all";
+  save(); renderAll();
+  toast("Category deleted — links moved to Unassigned", "ok");
+}
+
+/* ==================================================================
+   OUTPUT (main export modal)
+   ================================================================== */
+function scopedLinks(){
+  let arr = state.links.slice().sort((a, b) => a.order - b.order);
+  const scope = $("#scopeSel") ? $("#scopeSel").value : "all";
+  if(scope === "category" && state.activeCategory !== "all"){
+    if(state.activeCategory === "unassigned"){
+      arr = arr.filter(l => l.categoryId === "unassigned");
+    }else{
+      arr = arr.filter(l => l.categoryId === state.activeCategory);
+    }
+  }
+  return arr;
+}
+function buildDetailed(){
+  const scope = $("#scopeSel") ? $("#scopeSel").value : "all";
+  const lines = [];
+  lines.push("LINK SCRAPER & ORGANIZER — DETAILED REPORT");
+  lines.push("Workspace : " + state.projectName);
+  lines.push("Generated : " + new Date().toLocaleString());
+  lines.push("Files     : " + state.files.length + " HTML file(s) scanned");
+  lines.push("Links     : " + state.links.length + " unique link(s)");
+  lines.push("Categories: " + (state.categories.length + 1));
+  lines.push("Scope     : " + (scope === "category" && state.activeCategory !== "all"
+    ? "category “" + catName(state.activeCategory) + "”" : "entire workspace"));
+  lines.push("");
+
+  const cats = categoryOrder();
+  let any = false;
+  cats.forEach(cat => {
+    if(scope === "category" && state.activeCategory !== "all" && state.activeCategory !== cat.id) return;
+    const items = state.links
+      .filter(l => (cat.id === "unassigned" ? (l.categoryId === "unassigned" || !l.categoryId) : l.categoryId === cat.id))
+      .sort((a, b) => a.order - b.order);
+    if(!items.length) return;
+    any = true;
+    lines.push("==================================================");
+    lines.push("CATEGORY: " + cat.name + "  (" + items.length + " link" + (items.length === 1 ? "" : "s") + ")");
+    lines.push("==================================================");
+    lines.push("");
+    items.forEach(l => {
+      if(l.label) lines.push(l.context + ' = "' + l.label + '"');
+      lines.push("URL/Link > " + l.url);
+      lines.push("</fn>");
+      lines.push("");
+    });
+  });
+  if(!any) lines.push("(no links in the selected scope)");
+  return lines.join("\n");
+}
+function buildLinkOnly(){ return scopedLinks().map(l => l.url).join(";"); }
+
+$("#exportBtn").addEventListener("click", () => {
+  if(!state.links.length){ toast("Nothing to export yet — import some HTML first.", "warn"); return; }
+  updateScopeAvailability(); currentTab = "detailed"; setTab("detailed"); openModal("exportModal");
+});
+function updateScopeAvailability(){
+  const sel = $("#scopeSel");
+  const opt = sel.querySelector('option[value="category"]');
+  if(state.activeCategory === "all"){
+    opt.disabled = true; opt.textContent = "Current category only (none active)";
+    if(sel.value === "category") sel.value = "all";
+  }else{
+    opt.disabled = false;
+    opt.textContent = "Current category only — “" + catName(state.activeCategory) + "”";
+  }
+}
+function setTab(tab){
+  currentTab = tab;
+  $("#tabDetailed").classList.toggle("active", tab === "detailed");
+  $("#tabLinkOnly").classList.toggle("active", tab === "linkonly");
+  $("#outArea").style.whiteSpace = (tab === "linkonly") ? "pre-wrap" : "pre";
+  regenerateOutput();
+}
+function regenerateOutput(){ $("#outArea").value = (currentTab === "detailed") ? buildDetailed() : buildLinkOnly(); }
+$("#tabDetailed").addEventListener("click", () => setTab("detailed"));
+$("#tabLinkOnly").addEventListener("click", () => setTab("linkonly"));
+$("#scopeSel").addEventListener("change", regenerateOutput);
+$("#expRegen").addEventListener("click", () => { updateScopeAvailability(); regenerateOutput(); toast("Output refreshed", "ok"); });
+$("#expClose").addEventListener("click", () => closeModal("exportModal"));
+$("#expCopy").addEventListener("click", () => {
+  copyText($("#outArea").value)
+    .then(() => toast(currentTab === "detailed" ? "Detailed report copied" : "Link Only copied", "ok"))
+    .catch(() => toast("Copy failed", "err"));
+});
+$("#expSaveTxt").addEventListener("click", () => {
+  const text = $("#outArea").value;
+  const name = currentTab === "detailed" ? "link-report-detailed.txt" : "link-only.txt";
+  downloadText(text, name);
+  toast("TXT saved", "ok");
+});
+function downloadText(text, filename){
+  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+
+/* ==================================================================
+   PRINT
+   ================================================================== */
+$("#expPrint").addEventListener("click", printReport);
+function buildPrintHtml(){
+  const scope = $("#scopeSel").value;
+  const cats = categoryOrder();
+  let body = "";
+  body += '<h1>' + esc(state.projectName) + ' — Link Report</h1>';
+  body += '<div class="meta">';
+  body += 'Generated: ' + esc(new Date().toLocaleString()) + '<br>';
+  body += 'HTML files scanned: <b>' + state.files.length + '</b> &nbsp;·&nbsp; ';
+  body += 'Unique links: <b>' + state.links.length + '</b> &nbsp;·&nbsp; ';
+  body += 'Categories: <b>' + (state.categories.length + 1) + '</b>';
+  if(scope === "category" && state.activeCategory !== "all"){
+    body += ' &nbsp;·&nbsp; Scope: <b>' + esc(catName(state.activeCategory)) + '</b>';
+  }
+  body += '</div>';
+  let any = false;
+  cats.forEach(cat => {
+    if(scope === "category" && state.activeCategory !== "all" && state.activeCategory !== cat.id) return;
+    const items = state.links
+      .filter(l => (cat.id === "unassigned" ? (l.categoryId === "unassigned" || !l.categoryId) : l.categoryId === cat.id))
+      .sort((a, b) => a.order - b.order);
+    if(!items.length) return;
+    any = true;
+    body += '<h2>' + esc(cat.name) + ' <span style="font-weight:400;font-size:11px;color:#555">(' + items.length + ')</span></h2>';
+    items.forEach(l => {
+      body += '<div class="entry">';
+      if(l.label) body += '<div class="lbl">' + esc(l.context) + ' = "' + esc(l.label) + '"</div>';
+      body += '<div class="url">URL/Link &gt; ' + esc(l.url) + '</div>';
+      body += '<div class="fn">&lt;/fn&gt;</div>';
+      body += '</div>';
+    });
+  });
+  if(!any) body += '<p><i>No links in the selected scope.</i></p>';
+  return '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' +
+    esc(state.projectName) + ' — Link Report</title><style>' +
+    '@page{size:A4;margin:16mm}' +
+    'body{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#111;font-size:12px;line-height:1.5}' +
+    'h1{font-size:19px;margin:0 0 6px;border-bottom:3px solid #222;padding-bottom:8px}' +
+    '.meta{font-size:11px;color:#444;margin-bottom:14px}' +
+    'h2{font-size:13.5px;margin:20px 0 8px;padding:5px 8px;background:#f0f2f7;border-left:4px solid #4a6cf7;page-break-after:avoid}' +
+    '.entry{margin:0 0 9px;padding:6px 0 7px;border-bottom:1px dotted #ccc;page-break-inside:avoid}' +
+    '.lbl{font-weight:600}' +
+    '.url{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;word-break:break-all;color:#123}' +
+    '.fn{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10px;color:#777}' +
+    '</style></head><body>' + body + '</body></html>';
+}
+function printReport(){
+  const html = buildPrintHtml();
+  const frame = $("#printFrame");
+  try{
+    frame.onload = function(){ try{ frame.contentWindow.focus(); frame.contentWindow.print(); }catch(err){ fallbackPrint(html); } };
+    frame.srcdoc = html;
+  }catch(err){ fallbackPrint(html); }
+}
+function fallbackPrint(html){
+  const w = window.open("", "_blank");
+  if(!w){ toast("Print blocked by the browser. Allow pop-ups and retry.", "err"); return; }
+  w.document.open(); w.document.write(html); w.document.close();
+  setTimeout(() => { try{ w.focus(); w.print(); }catch(e){} }, 300);
+}
+
+/* ==================================================================
+   SEARCH / FILTER
+   ================================================================== */
+let searchTimer = null;
+$("#searchInput").addEventListener("input", e => {
+  const v = e.target.value;
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => { state.search = v; renderLimit = 250; renderWorkspace(); renderBulk(); save(); }, 140);
+});
+$("#typeFilter").addEventListener("change", e => {
+  state.filterType = e.target.value; renderLimit = 250; renderWorkspace(); renderBulk(); save();
+});
+
+/* ==================================================================
+   THEME / NET / SAVE / RESET
+   ================================================================== */
+function applyTheme(){
+  document.documentElement.setAttribute("data-theme", state.theme);
+  $("#themeBtn").textContent = state.theme === "dark" ? "🌙" : "☀️";
+  $("#themeBtn").title = state.theme === "dark" ? "Switch to light theme" : "Switch to dark theme";
+}
+$("#themeBtn").addEventListener("click", () => { state.theme = state.theme === "dark" ? "light" : "dark"; applyTheme(); save(); });
+function applyNet(){
+  const on = navigator.onLine;
+  const el = $("#netStatus");
+  el.classList.toggle("offline", !on);
+  $("#netText").textContent = on ? "Online" : "Offline";
+  el.title = on ? "You are online — the app still works fully offline."
+                : "Offline mode — import, scrape, organize and export all work locally.";
+}
+window.addEventListener("online", () => { applyNet(); toast("Back online", "ok"); });
+window.addEventListener("offline", () => { applyNet(); toast("Offline — workspace still fully functional", "warn"); });
+$("#saveBtn").addEventListener("click", () => { if(saveNow()) toast("Workspace saved", "ok"); });
+$("#resetBtn").addEventListener("click", async () => {
+  const ok = await confirmDialog("Reset workspace?",
+    "This permanently deletes all scraped links, categories, ordering and saved settings from this browser. This cannot be undone.",
+    "Reset everything");
+  if(!ok) return;
+  try{ localStorage.removeItem(LS_KEY); }catch(e){}
+  state.links = []; state.categories = []; state.files = []; state.rawRefs = 0;
+  state.activeCategory = "all"; state.search = ""; state.filterType = "all";
+  state.nextId = 1; state.nextCatId = 1;
+  state.norm = { prefixWww: true, decode:false, stripTracking:false, extractRedirect:false };
+  selected.clear(); renderLimit = 250;
+  seedCategories();
+  $("#searchInput").value = ""; $("#typeFilter").value = "all";
+  saveNow(); renderAll();
+  toast("Workspace reset", "ok");
+});
+$("#mobileCats").addEventListener("click", () => $("#sidebar").classList.toggle("hidden"));
+
+/* ==================================================================
+   INIT
+   ================================================================== */
+function seedCategories(){
+  state.categories = [
+    { id: "C" + (state.nextCatId++), name: "Social" },
+    { id: "C" + (state.nextCatId++), name: "Internal" }
+  ];
+}
+function init(){
+  const restored = load();
+  if(!state.categories.length && !state.links.length) seedCategories();
+  applyTheme(); applyNet();
+  $("#searchInput").value = state.search || "";
+  $("#typeFilter").value = state.filterType || "all";
+  $("#projectSub").textContent = restored ? "Workspace restored · autosave on" : "Local-first · no upload · file:// ready";
+  renderAll();
+  if(restored && state.links.length) toast("Workspace restored: " + state.links.length + " link(s)", "ok");
+}
+init();
+</script>
+</body>
+</html>
